@@ -49,7 +49,7 @@ betweenness_nodes = betweenness_centrality(graph)
 end_time = time.monotonic()
 max_betweennes_node = max(betweenness_nodes, key = lambda x: betweenness_nodes[x])
 print("max betweenness node, betweenness: {}, {}".format(max_betweennes_node, betweenness_nodes[max_betweennes_node]))  
-print("execution time: {}".format(end_time-start_time)) #my pc 199sec
+print("execution time: {}".format(end_time-start_time)) #my pc 196sec
 
 # calculate the degree for all nodes
 # print out the node with greater degree and its value
@@ -58,7 +58,7 @@ degree_nodes = dict(graph.degree(graph.nodes)) # need a conversion tu use always
 end_time = time.monotonic()
 max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
 print("node: {}, degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
-print("execution time: {}".format(end_time-start_time)) #my pc 199sec
+print("execution time: {}".format(end_time-start_time)) #my pc 0.01sec
 
 # firs biefly analyses
 print("the node with greater centrality {}, has degree {} and betweenness {}".format(max_centrality_node, degree_nodes[max_centrality_node] ,betweenness_nodes[max_centrality_node]))

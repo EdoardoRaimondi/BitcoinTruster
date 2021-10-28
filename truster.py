@@ -42,6 +42,13 @@ max_centrality_node = max(closennes_nodes, key = lambda x: closennes_nodes[x])
 print("max closeness node, closeness: {}, {}".format(max_centrality_node, closennes_nodes[max_centrality_node])) #905  
 print("execution time: {}".format(end_time-start_time)) #my pc 90sec
 
+start_time = time.monotonic()
+betweenness_nodes = betweenness_centrality(graph)
+end_time = time.monotonic()
+max_betweennes_node = max(betweenness_nodes, key = lambda x: betweenness_nodes[x])
+print("max betweenness node, betweenness: {}, {}".format(max_betweennes_node, betweenness_nodes[max_betweennes_node])) #905  
+print("execution time: {}".format(end_time-start_time)) #my pc 199sec
+
 # ----------------------------------------------------------
 #        PRINT A SUBGRAPH WITH GREATER CENTRALITY
 # ----------------------------------------------------------

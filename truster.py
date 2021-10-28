@@ -36,23 +36,47 @@ graph = nx.from_pandas_edgelist(df, 'source', 'target', ['rate'], create_using=n
 # print the node with the most closennes centrality score
 # what does closeness centrality mean in our graph? Has it sense to consider it?
 start_time = time.monotonic()
-closennes_nodes = closeness_centrality(graph)
+centrality_nodes = closeness_centrality(graph)
 end_time = time.monotonic()
-max_centrality_node = max(closennes_nodes, key = lambda x: closennes_nodes[x])
-print("max closeness node, closeness: {}, {}".format(max_centrality_node, closennes_nodes[max_centrality_node])) #905  
+max_centrality_node = max(centrality_nodes, key = lambda x: centrality_nodes[x])
+print("max closeness node, closeness: {}, {}".format(max_centrality_node, centrality_nodes[max_centrality_node])) 
 print("execution time: {}".format(end_time-start_time)) #my pc 90sec
 
+# print the node with th emost between centrality score
+# is betweenness centrality interesting or not? What is it mean?
 start_time = time.monotonic()
 betweenness_nodes = betweenness_centrality(graph)
 end_time = time.monotonic()
 max_betweennes_node = max(betweenness_nodes, key = lambda x: betweenness_nodes[x])
-print("max betweenness node, betweenness: {}, {}".format(max_betweennes_node, betweenness_nodes[max_betweennes_node])) #905  
+print("max betweenness node, betweenness: {}, {}".format(max_betweennes_node, betweenness_nodes[max_betweennes_node]))  
 print("execution time: {}".format(end_time-start_time)) #my pc 199sec
 
+# calculate the degree for all nodes
+# print out the node with greater degree and its value
+start_time = time.monotonic()
+degree_nodes = dict(graph.degree(graph.nodes)) # need a conversion tu use always the same lambda funciton
+end_time = time.monotonic()
+max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
+print("node: {}, degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
+print("execution time: {}".format(end_time-start_time)) #my pc 199sec
+
+# firs biefly analyses
+print("the node with greater centrality {}, has degree {} and betweenness {}".format(max_centrality_node, degree_nodes[max_centrality_node] ,betweenness_nodes[max_centrality_node]))
+print("the node with greater betweenness {}, has degree {} and centrlity {}".format(max_betweennes_node, degree_nodes[max_betweennes_node] ,centrality_nodes[max_betweennes_node]))
+print("the node with greater degree {}, has centrality {} and betweenness {}".format(max_degree_node, centrality_nodes[max_degree_node] ,betweenness_nodes[max_degree_node]))
+
 # ----------------------------------------------------------
-#        PRINT A SUBGRAPH WITH GREATER CENTRALITY
+#                   PRINT SOME SUBGRAPHS
 # ----------------------------------------------------------
+
+# subgraph with the node that has max centrality
 subnodes = graph.neighbors(max_centrality_node)
+subgraph = graph.subgraph(subnodes)
+figure1 = plt.subplot(121)
+nx.draw(subgraph, with_labels=True)
+
+# subgraph with the node that has max degree
+subnodes = graph.neighbors(max_degree_node)
 subgraph = graph.subgraph(subnodes)
 figure1 = plt.subplot(121)
 nx.draw(subgraph, with_labels=True)

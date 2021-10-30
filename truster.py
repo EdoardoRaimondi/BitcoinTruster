@@ -23,11 +23,11 @@ import pandas as pd
 df = pd.read_csv('soc-sign-bitcoinotc.csv')
 # clean it (remove last column)
 df.drop(df.columns[len(df.columns)-1], axis=1, inplace=True)
-columns_name = ['source', 'target', 'rate']
+columns_name = ['source', 'target', 'weight']
 # add columns names 
 df.columns = columns_name
 # transform pandas dataframe into a directed graph
-graph = nx.from_pandas_edgelist(df, 'source', 'target', ['rate'], create_using=nx.DiGraph())
+graph = nx.from_pandas_edgelist(df, 'source', 'target', ['weight'], create_using=nx.DiGraph())
 
 # ---------------------------------
 #             ANALYSES

@@ -6,8 +6,7 @@ from networkx.algorithms.centrality.betweenness import betweenness_centrality
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.classes.function import is_directed, number_of_nodes, subgraph
 import pandas as pd
-
-from Graph_analyzer import Graph_analyzer
+from GraphAnalyzer import GraphAnalyzer
 
 # This programs analyize Bitcoin trust network transaction. 
 #
@@ -39,20 +38,20 @@ def main():
     #             ANALYSES
     # ---------------------------------
 
-    analyzer = Graph_analyzer(graph)
+    analyzer = GraphAnalyzer(graph)
 
     # calculate the degree for all nodes
     # print out the node with greater degree and its value
     start_time = time.monotonic()
-    degree_nodes = dict(graph.in_degree(graph.nodes)) # need a conversion tu use always the same lambda funciton
+    degree_nodes = dict(graph.in_degree(graph.nodes)) # need a conversion tu use always the same lambda function
     end_time = time.monotonic()
     max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
     print("node: {}, degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
     print("execution time: {}".format(end_time-start_time)) #my pc 0.01sec
 
     # graph goodnees score
-    print("goodnees of a random node : {}".format(analyzer.node_goodness(905)))
-    nodes_goodness = analyzer.graph_goodness(max_degree_node)
+    print("goodness score of a random node : {}".format(analyzer.node_goodness(905)))
+    nodes_goodness = analyzer.graph_goodness()
     # look to the node with greater and lower goodness
     min_goodness = math.inf
     max_goodness = -math.inf
@@ -67,9 +66,9 @@ def main():
     print("Best node: {} has goodness: {}".format(node_max_goodness, max_goodness))
     print("Worst node: {} has goodness: {}".format(node_min_goodness, min_goodness))
     #for node in analyzer.graph_goodness(max_degree_node).keys():
-    #    print(" Node {} has a goodnees score of : {}".format(node, nodes_goodness[node]))
+    #print(" Node {} has a goodnees score of : {}".format(node, nodes_goodness[node]))
 
-    # print the node with the most closennes centrality score
+    # print the node with higher closennes centrality score
     # what does closeness centrality mean in our graph? Has it sense to consider it?
     start_time = time.monotonic()
     centrality_nodes = closeness_centrality(graph)
@@ -78,7 +77,7 @@ def main():
     print("max closeness node, closeness: {}, {}".format(max_centrality_node, centrality_nodes[max_centrality_node])) 
     print("execution time: {}".format(end_time-start_time)) #my pc 90sec
 
-    # print the node with th emost between centrality score
+    # print the node with higher betweeness centrality score
     # is betweenness centrality interesting or not? What is it mean?
     start_time = time.monotonic()
     betweenness_nodes = betweenness_centrality(graph)

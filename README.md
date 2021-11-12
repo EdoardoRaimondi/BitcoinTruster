@@ -12,10 +12,10 @@ At least, we search particular subgraph (with 2, 3 or 4 nodes) that they must ha
 
 # Dataset
 We use a public dataset given by Standford University at the following link: https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html .
-It is composed by: 
-    1. Nodes: 5881
-    2. Edges: 35592
-    3. Range of edge weight: -10 to +10
+It is composed by: \\
+    1. Nodes: 5881 \\
+    2. Edges: 35592\\
+    3. Range of edge weight: -10 to +10\\
 
 # Methods
 - node level : goodness and degree of nodes. Investigation

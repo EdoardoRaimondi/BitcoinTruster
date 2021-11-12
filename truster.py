@@ -1,5 +1,6 @@
 import networkx as nx
 import MyUtility
+import numpy as np
 import pandas as pd
 from GraphAnalyzer import GraphAnalyzer
 
@@ -36,7 +37,7 @@ def main():
     analyzer = GraphAnalyzer(graph)
 
     # calculate degree of all nodes of the graph
-    degree_nodes, max_degree_node = analyzer.graph_degree()
+    degree_nodes, max_degree_node = analyzer.graph_in_degree()
 
     # calculate the closeness centrality for all node in the graph
     centrality_nodes, max_centrality_node = analyzer.graph_centrality()
@@ -47,6 +48,9 @@ def main():
     # graph goodnees score
     print("goodness score of a random node : {}".format(analyzer.node_goodness(905)))
     goodness_nodes, max_goodness_node, min_goodness_node = analyzer.graph_goodness()
+
+    # graph fariness score
+    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fariness(goodness_nodes)
 
     # first briefly analyses
     print("  NODE   |  DEGREE  | CLOSENESS | BETWEENNESS | GOODNESS |")
@@ -61,7 +65,7 @@ def main():
     # ----------------------------------------------------------
 
     # subgraph with the node that has max centrality
-    MyUtility.drawsubgraph(graph, max_centrality_node, 2) 
+    #MyUtility.drawsubgraph(graph, max_centrality_node, 2) 
 
 
 if __name__ == "__main__":

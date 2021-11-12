@@ -1,4 +1,5 @@
 import time
+import sys
 import networkx as nx
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ class GraphAnalyzer:
         # param : graph to analyze
         self.graph = graph
 
-    def graph_degree(self):
+    def graph_in_degree(self):
         # Calculate degree of all node in the graph
         # param  (networkx graph) : directed graph
         # returns  (dict), (int)  : dict with key as node ad degree as value
@@ -116,3 +117,80 @@ class GraphAnalyzer:
                 print("worst node: {} has goodness: {}".format(node_min_goodness, nodes_goodnesses[node_min_goodness]))
 
                 return nodes_goodnesses, node_max_goodness, node_min_goodness
+
+    # postit comment: nodes_goodness are with the ln(in_degree(node)) -> I diveded by it (be carefull on this)
+    def node_fairness(self, node, nodes_goodness):
+        # calculate the fariness of a node
+        # param graph (directed networkx graph) 
+        # param node          (int)        : number of nodes to consider.
+        # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
+        # return         (double)          : return the value of the fairness
+        # raises presonalized errors
+
+        # check if the node has successors, if not return 0
+        if self.graph.out_degree(node) == 0:
+            return 0
+
+        # create a dict with all successor of such node and their goodness score
+        nodes_successors_and_goodness = {}
+        for successor in self.graph.successors(node):
+            if self.graph.in_degree(successor) == 1: # if the successor has only this node it is useless
+                nodes_successors_and_goodness[successor] = None
+            else:
+                nodes_successors_and_goodness[successor] = (nodes_goodness[successor]) / np.log(self.graph.in_degree(successor))
+
+        # create a dict with all successor of such node and the evaluation give to them by the node
+        nodes_successors_and_evaluation = {}
+        for successor in self.graph.successors(node):
+            nodes_successors_and_evaluation[successor] = self.graph[node][successor]["weight"]
+
+        # remove useless successor such they that are only the one with None as value 
+        for n in list(nodes_successors_and_goodness.keys()):
+            if nodes_successors_and_goodness[n] is None:
+                del(nodes_successors_and_goodness[n])
+                del(nodes_successors_and_evaluation[n])
+
+        # check if the len of the 2 dict are the same
+        if len(nodes_successors_and_goodness) != len(nodes_successors_and_evaluation):
+            sys.exit("[ERROR] Different value on dictionary used to calcluate fairness")
+
+        # calculate the average variance on the evaluation
+        # notice the abs() l1 norm if we want we can pass to l2 metrics
+        variance = 0
+        for n in nodes_successors_and_goodness.keys(): 
+            variance = variance + abs((abs(nodes_successors_and_evaluation[n]) - abs(nodes_successors_and_goodness[n])))
+        
+        return variance / len(list(self.graph.successors(node)))
+
+    def graph_fariness(self, node_goodness):
+        # calculate the fariness of all nodes
+        # param graph (directed networkx graph) 
+        # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
+        # return   (dict), (int), (int)    : return a dict key-value as node-fairness, node with min and max fairness
+        # raises presonalized errors
+
+        print("----FAIRNESS ANALYSIS----")
+        print("The scale is between 0 and 10, if 0 good if 10 bad")
+        nodes_fairness = {}
+        start_time = time.monotonic()
+
+        for node in self.graph.nodes():
+            fairness = self.node_fairness(node, node_goodness)
+            nodes_fairness[node] = fairness
+        
+        end_time = time.monotonic()
+
+        # remove all nodes that has 0 out edges
+        for node in self.graph.nodes():
+            if self.graph.out_degree(node) == 0:
+                del(nodes_fairness[node])
+
+        min_node_fariness, max_node_fairness = MyUtility.min_max(nodes_fairness)
+
+        print("exectution time : {}".format(end_time-start_time))
+        print("worst node: {} has fairness: {}".format(max_node_fairness, nodes_fairness[max_node_fairness]))
+        print("best node: {} has fairness: {}".format(min_node_fariness, nodes_fairness[min_node_fariness]))
+
+        
+        return nodes_fairness, min_node_fariness, max_node_fairness
+        

@@ -2,7 +2,7 @@ import time
 import networkx as nx
 import pandas as pd
 import numpy as np
-import my_utility
+import MyUtility
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
@@ -111,7 +111,7 @@ class GraphAnalyzer:
                 print("----GOODNESS ANALYSIS----")
                 print("exectution time for {} nodes : {}".format(nodes_number, end_time-start_time))
                 # look to the node with greater and lower goodness
-                node_min_goodness, node_max_goodness = my_utility.min_max(nodes_goodnesses)
+                node_min_goodness, node_max_goodness = MyUtility.min_max(nodes_goodnesses)
                 print("best node: {} has goodness: {}".format(node_max_goodness, nodes_goodnesses[node_max_goodness]))
                 print("worst node: {} has goodness: {}".format(node_min_goodness, nodes_goodnesses[node_min_goodness]))
 

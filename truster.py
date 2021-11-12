@@ -1,5 +1,5 @@
 import networkx as nx
-import my_utility
+import MyUtility
 import pandas as pd
 from GraphAnalyzer import GraphAnalyzer
 
@@ -61,7 +61,7 @@ def main():
     # ----------------------------------------------------------
 
     # subgraph with the node that has max centrality
-    my_utility.drawsubgraph(graph, max_centrality_node, 2) # non disegna correttamente, devo rivedere una cosa
+    MyUtility.drawsubgraph(graph, max_centrality_node, 2) 
 
 
 if __name__ == "__main__":

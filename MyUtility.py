@@ -4,6 +4,7 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import math
+from networkx.classes.graph import Graph
 
 
 def min_max(dict):
@@ -30,20 +31,35 @@ def drawsubgraph(graph, node, type):
     #                              -- 2 : draw a graph with exeting neighbors of the given node
     #                              -- 3 : draw a graph with all neighbors of the given node
     # raises networkxerror if node not in the graph
-    # draw a wanted subgraph dipends on the type subgraph 
+    # draw a wanted subgraph dipends on the type subgraph
 
-    if type == 1:
-        subnodes = graph.predecessors(node)
-        subgraph = graph.subgraph(subnodes) # -> non va bene, printa troppi nodi
-        figure1 = plt.subplot(121)
-        nx.draw(subgraph, with_labels=True)
-    if type == 2:
-        subnodes = graph.successors(node)
-        subgraph = graph.subgraph(subnodes) # -> non va bene, printa troppi nodi
-        figure1 = plt.subplot(121)
-        nx.draw(subgraph, with_labels=True)
-    if type == 3:
-        subnodes = graph.neighbors(node)
-        subgraph = graph.subgraph(subnodes) # -> non va bene, printa troppi nodi
-        figure1 = plt.subplot(121)
-        nx.draw(subgraph, with_labels=True)
+    # preliminary check
+    if 0 < type and type < 4:
+        # initialize the subgraph
+        subgraph = nx.DiGraph()
+        subgraph.add_node(node)
+
+        if type == 1:
+            subnodes = graph.predecessors(node)
+            for previous_node in subnodes:
+                subgraph.add_edge(previous_node, node)
+            figure1 = plt.subplot(121)
+            nx.draw(subgraph, with_labels=True)
+            
+        if type == 2:
+            subnodes = graph.successors(node)
+            for successor_node in subnodes:
+                subgraph.add_edge(node, successor_node)
+            figure1 = plt.subplot(121)
+            nx.draw(subgraph, with_labels=True)
+            
+        if type == 3:
+            subnodes_predecessor = graph.predecessors(node)
+            for previous_node in subnodes_predecessor:
+                subgraph.add_edge(previous_node, node)
+
+            subnodes_successor = graph.successors(node)
+            for successor_node in subnodes_successor:
+                subgraph.add_edge(node, successor_node)
+            figure1 = plt.subplot(121)
+            nx.draw(subgraph, with_labels=True)

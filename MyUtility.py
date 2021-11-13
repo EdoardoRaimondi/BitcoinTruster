@@ -28,8 +28,8 @@ def drawsubgraph(graph, node, type):
     # param       (integer)     : value of a node
     # param       (integer)     : type of graph we want, for now possible values are:
     #                              -- 1 : draw a graph with entering neighbors of the given node
-    #                              -- 2 : draw a graph with exeting neighbors of the given node
-    #                              -- 3 : draw a graph with all neighbors of the given node
+    #                              -- 2 : draw a graph with outgoing neighbors from the given node
+    #                              -- 3 : draw a graph with all the neighbors of the given node
     # raises networkxerror if node not in the graph
     # draw a wanted subgraph dipends on the type subgraph
 

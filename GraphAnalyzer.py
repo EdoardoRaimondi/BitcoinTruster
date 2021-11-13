@@ -33,7 +33,7 @@ class GraphAnalyzer:
         return degree_nodes, max_degree_node
 
     def graph_centrality(self):
-        # Calculate degree of all node in the graph
+        # Calculate centrality of all node in the graph
         # param  (networkx graph) : directed graph
         # returns  (dict), (int)  : dict with key as node ad closeness centrality as value, node with max closeness centrality
         # Print out also the exectution time and the node with max closeness centrality
@@ -49,7 +49,7 @@ class GraphAnalyzer:
         return centrality_nodes, max_centrality_node
 
     def graph_betweenness(self):
-        # Calculate degree of all node in the graph
+        # Calculate betweennes of all node in the graph
         # param  (networkx graph) : directed graph
         # returns  (dict), (int)  : dict with key as node ad between centrality as value, node with max betweenness centrality
         # Print out also the exectution time and the node with max betweenness centrality
@@ -83,7 +83,7 @@ class GraphAnalyzer:
         return (sum(weights)/self.graph.in_degree(node))*recalibration_factor
 
     def graph_goodness(self, nodes_number=None):
-        # Calculate goodnees of all the nodes of the graph
+        # Calculate goodnees of a certain number of nodes in the graph
         # param graph (directed networkx graph) 
         # param nodes_number  (int)    : number of nodes to consider.
         #                                If no values is provided, the entire graph will be considered.
@@ -120,10 +120,10 @@ class GraphAnalyzer:
 
     # postit comment: nodes_goodness are with the ln(in_degree(node)) -> I diveded by it (be carefull on this)
     def node_fairness(self, node, nodes_goodness):
-        # calculate the fariness of a node
+        # calculate the fairness of a node
         # param graph (directed networkx graph) 
-        # param node          (int)        : number of nodes to consider.
-        # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
+        # param node          (int)        : number of nodes to consider
+        # param nodes_goodness    (dict)   : dict key-value as node-goodness_value
         # return         (double)          : return the value of the fairness
         # raises presonalized errors
 
@@ -134,12 +134,12 @@ class GraphAnalyzer:
         # create a dict with all successor of such node and their goodness score
         nodes_successors_and_goodness = {}
         for successor in self.graph.successors(node):
-            if self.graph.in_degree(successor) == 1: # if the successor has only this node it is useless
+            if self.graph.in_degree(successor) == 1: # if the successor has only this node it is outliner
                 nodes_successors_and_goodness[successor] = None
             else:
                 nodes_successors_and_goodness[successor] = (nodes_goodness[successor]) / np.log(self.graph.in_degree(successor))
 
-        # create a dict with all successor of such node and the evaluation give to them by the node
+        # create a dict with all successors of such node and the evaluation give to them by the node
         nodes_successors_and_evaluation = {}
         for successor in self.graph.successors(node):
             nodes_successors_and_evaluation[successor] = self.graph[node][successor]["weight"]
@@ -152,7 +152,7 @@ class GraphAnalyzer:
 
         # check if the len of the 2 dict are the same
         if len(nodes_successors_and_goodness) != len(nodes_successors_and_evaluation):
-            sys.exit("[ERROR] Different value on dictionary used to calcluate fairness")
+            sys.exit("[ERROR] Different value on dictionary used to calculate fairness")
 
         # calculate the average variance on the evaluation
         # notice the abs() l1 norm if we want we can pass to l2 metrics

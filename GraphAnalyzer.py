@@ -1,6 +1,7 @@
 from operator import truediv
 import time
 import sys
+import math
 import networkx as nx
 import pandas as pd
 import numpy as np
@@ -8,6 +9,7 @@ from scipy.stats import levene
 import scipy
 import MyUtility
 import matplotlib.pyplot as plt
+from itertools import combinations
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
@@ -220,6 +222,78 @@ class GraphAnalyzer:
             if stat[1] > alpha:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
-
         
+    def subgraphGoodness(self, goodness_nodes, number):
+        # calclulate the subgraph with grater goodness
+        # param graph (directed networkx graph) 
+        # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
+        # parm        number      (int)      : number of nodes that the subgraph must has
+        # return           (tuple)           : return the tuple with the greater goodness 
+
+        print("Search the subgraph with {} nodes that it has the higher goodness".format(number))
+
+        # parameters
+        max_goodness = -math.inf
+        final_nodes_id = []   
+        start_time = time.monotonic()
+
+        # see all possibile combinations
+        for nodes in combinations(self.graph.nodes, number):
+            subgraph = self.graph.subgraph(nodes)
+
+            # check if it is connected
+            if nx.is_weakly_connected(subgraph):
+                subgraph_goodness = 0
+                for node in nodes:
+
+                    # check if it has a goodness value, remember some value hasn't it
+                    if node in goodness_nodes.keys():
+                        subgraph_goodness = subgraph_goodness + goodness_nodes[node]
+
+                # check if we need to update the values
+                if subgraph_goodness > max_goodness:
+                    max_goodness = subgraph_goodness
+                    final_nodes_id = nodes
+
+        end_time = time.monotonic()
+        print("execution time: {}".format(end_time-start_time))
+
+        return final_nodes_id
+
+    def subgraphFairness(self, fairness_nodes, number):
+        # calclulate the subgraph with grater goodness
+        # param graph (directed networkx graph) 
+        # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
+        # parm        number      (int)      : number of nodes that the subgraph must has
+        # return           (tuple)           : return the tuple with the greater goodness 
+
+        print("Search the subgraph with {} nodes that it has the lower fairness".format(number))
+
+        # parameters
+        min_fairness = math.inf
+        final_nodes_id = []   
+        start_time = time.monotonic()
+
+        # see all possibile combinations
+        for nodes in combinations(self.graph.nodes, number):
+            subgraph = self.graph.subgraph(nodes)
+
+            # check if it is connected
+            if nx.is_weakly_connected(subgraph):
+                subgraph_fairness = 0
+                for node in nodes:
+
+                    # check if it has a goodness value, remember some value hasn't it
+                    if node in fairness_nodes.keys():
+                        subgraph_fairness = subgraph_fairness + fairness_nodes[node]
+
+                # check if we need to update the values
+                if subgraph_fairness < min_fairness:
+                    min_fairness = subgraph_fairness
+                    final_nodes_id = nodes
+
+        end_time = time.monotonic()
+        print("execution time: {}".format(end_time-start_time))
+
+        return final_nodes_id
 

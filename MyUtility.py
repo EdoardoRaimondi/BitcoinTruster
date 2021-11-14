@@ -73,7 +73,29 @@ def drawsubgraph(graph, node, type):
             figure1 = plt.subplot(121)
             nx.draw(subgraph, with_labels=True)
 
-#def drawGraph_Centrality():
+def drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, number):
+    # param    (dict)  : dict key-value as node-degree
+    # param    (dict)  : dict key-value as node-closeness centrality
+    # param    (dict)  : dict key-value as node-betweenness centrality
+    # param    (int)   : number of nodes that we want to see in the graph
+    # draw a graph with some nodes and their the values of degree, closeness centrality and betweenness centrality
+
+    # sort the dicts
+    sorted_nodes_degree = dict(sorted(degree_nodes.items()))
+    sorted_nodes_centrality = dict(sorted(centrality_nodes.items()))
+    sorted_nodes_betweenness = dict(sorted(betweenness_nodes.items()))
+
+    # plot the values
+    plt.plot(sorted_nodes_degree.keys()[:number], sorted_nodes_degree.values()[:number], label='Degree', marker="s")
+    plt.plot(sorted_nodes_centrality.keys()[:number], sorted_nodes_centrality.values()[:number], label='Closeness Centrality', marker="s")
+    plt.plot(sorted_nodes_betweenness.keys()[:number], sorted_nodes_betweenness.values()[:number], label='Betweenness Centrality', marker="s")
+    plt.xlabel('Node')
+    plt.ylabel('value')
+    plt.title('Degree-Closeness Centrality-Between Centrality for each node')
+    plt.legend()
+
+    # show the graph
+    plt.show()
 
 
 def drawGraphGoodFair(nodes_goodness, nodes_fairness, number):
@@ -115,5 +137,3 @@ def drawGraphGoodFair(nodes_goodness, nodes_fairness, number):
 
     # show the graph
     plt.show()
-
-

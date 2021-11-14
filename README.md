@@ -6,7 +6,7 @@ Analysis of bitcoin transactions trustability graph
 
 **MOTIVATIONS**
 
-Since OTC transactions are anonymously performed our aim is to investigate the transactions graph and give to it a proper formalism and interpretation, in order to enlarge its expression power. Since the transactions are a bipartite accord we are interest to analyze which node has an high good reputation and which not. \\
+Since OTC transactions are anonymously performed, our aim is to investigate the transactions graph and give to it a proper formalism and interpretation, in order to enlarge its expression power. Since the transactions are a bipartite accord we are interest to analyze which node has an high good reputation and which not. \\
 
 **Dataset**
 
@@ -25,9 +25,10 @@ It is composed by: \\
 
 - using Networkx we analyze closeness centrality, betweenness centrality and degree of each node. We do it in order to understand the network structure, since it can be unbalanced and affects our metrics.
 - we give an interpretation of goodness for a node, that it is related to the evaluation that a node received and to the input degree.
-- we give an interpretation of fariness for a node, that it is related to the vote that a node gives to another and the variation of it with respect the mean goodness for that node.
+- we give an interpretation of fairness for a node, that it is related to the vote that a node gives to another and the variation of it with respect the mean goodness for that node.
 - we do a comparison between the two metrics. In this way we can understand which node receives a good evaluations and provide fairly ones.
 - finally we search in the network a subgraph (made of 2 or 3 or 4 node) that has the highest goodness and the lowest fariness. If a new user is interested in doing a transaction in this graph, it could want to 'keep in touch' with such nodes.
+- for statistical purposes, we aim to assert whether the transactions between users (so if A is connected rather than B) in our graph are casual or not ( hypotesis testing Erdos-Renyi-Gilbert random graph generation )
 
 **Related Works**
 

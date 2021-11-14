@@ -7,6 +7,14 @@ import sys
 import math
 from networkx.classes.graph import Graph
 
+def weighted_incoming_mean(graph, node):
+    # calculate the weighted mean of incoming edges of input node on the input graph
+    if not graph.has_node(node):
+        return
+    weights = []
+    for n in graph.predecessors(node): # I want the entering nodes 
+        weights.append(graph[n][node]["weight"])
+    return sum(weights)/graph.in_degree(node)
 
 def min_max(dict):
     # param     (dict)     : dictionary key-value
@@ -107,3 +115,5 @@ def drawGraphGoodFair(nodes_goodness, nodes_fairness, number):
 
     # show the graph
     plt.show()
+
+

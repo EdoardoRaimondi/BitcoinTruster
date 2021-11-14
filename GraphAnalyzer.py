@@ -1,9 +1,13 @@
+from operator import truediv
 import time
 import sys
 import networkx as nx
 import pandas as pd
 import numpy as np
+from scipy.stats import levene
+import scipy
 import MyUtility
+import matplotlib.pyplot as plt
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
@@ -71,16 +75,14 @@ class GraphAnalyzer:
         # returns     (double)     : node goodnees score. None if there are no weights
         # raises  NetowrkXError if the node is not in the graph
 
-        if self.graph.in_degree(node) == 0:
+        in_degree = self.graph.in_degree(node)
+        if in_degree == 0:
             return # no grade available for this node
-        weights = []
-        for n in self.graph.predecessors(node): # I want the entering nodes 
-            weights.append(self.graph[n][node]["weight"])
 
-        recalibration_factor = np.log(len(weights)) # for score recalibration purposes ( see "paper" for more details)
+        recalibration_factor = np.log(in_degree) # for score recalibration purposes ( see "paper" for more details)
         # NB : node with only 1 grade will not be considered relevant enough, then their goodness score is 0
 
-        return (sum(weights)/self.graph.in_degree(node))*recalibration_factor
+        return (MyUtility.weighted_incoming_mean(self.graph, node))*recalibration_factor
 
     def graph_goodness(self, nodes_number=None):
         # Calculate goodnees of a certain number of nodes in the graph
@@ -119,11 +121,10 @@ class GraphAnalyzer:
                 return nodes_goodnesses, node_max_goodness, node_min_goodness
 
     # postit comment: nodes_goodness are with the ln(in_degree(node)) -> I diveded by it (be carefull on this)
-    def node_fairness(self, node, nodes_goodness):
+    def node_fairness(self, node):
         # calculate the fairness of a node
         # param graph (directed networkx graph) 
         # param node          (int)        : number of nodes to consider
-        # param nodes_goodness    (dict)   : dict key-value as node-goodness_value
         # return         (double)          : return the value of the fairness
         # raises presonalized errors
 
@@ -131,38 +132,38 @@ class GraphAnalyzer:
         if self.graph.out_degree(node) == 0:
             return 0
 
-        # create a dict with all successor of such node and their goodness score
-        nodes_successors_and_goodness = {}
+        # create a dict with all successor of such node and their feedback scores (weighted mean of incoming edges)
+        nodes_successors_and_feedback_score = {}
         for successor in self.graph.successors(node):
             if self.graph.in_degree(successor) == 1: # if the successor has only this node it is outliner
-                nodes_successors_and_goodness[successor] = None
+                nodes_successors_and_feedback_score[successor] = None
             else:
-                nodes_successors_and_goodness[successor] = (nodes_goodness[successor]) / np.log(self.graph.in_degree(successor))
-
+                nodes_successors_and_feedback_score[successor] = MyUtility.weighted_incoming_mean(self.graph, successor) 
+    
         # create a dict with all successors of such node and the evaluation give to them by the node
         nodes_successors_and_evaluation = {}
         for successor in self.graph.successors(node):
             nodes_successors_and_evaluation[successor] = self.graph[node][successor]["weight"]
 
         # remove useless successor such they that are only the one with None as value 
-        for n in list(nodes_successors_and_goodness.keys()):
-            if nodes_successors_and_goodness[n] is None:
-                del(nodes_successors_and_goodness[n])
+        for n in list(nodes_successors_and_feedback_score.keys()):
+            if nodes_successors_and_feedback_score[n] is None:
+                del(nodes_successors_and_feedback_score[n])
                 del(nodes_successors_and_evaluation[n])
 
         # check if the len of the 2 dict are the same
-        if len(nodes_successors_and_goodness) != len(nodes_successors_and_evaluation):
+        if len(nodes_successors_and_feedback_score) != len(nodes_successors_and_evaluation):
             sys.exit("[ERROR] Different value on dictionary used to calculate fairness")
 
-        # calculate the average variance on the evaluation
+        # calculate the average varsiance on the evaluation
         # notice the abs() l1 norm if we want we can pass to l2 metrics
         variance = 0
-        for n in nodes_successors_and_goodness.keys(): 
-            variance = variance + abs((abs(nodes_successors_and_evaluation[n]) - abs(nodes_successors_and_goodness[n])))
+        for n in nodes_successors_and_feedback_score.keys(): 
+            variance = variance + abs((abs(nodes_successors_and_evaluation[n]) - abs(nodes_successors_and_feedback_score[n])))
         
         return variance / len(list(self.graph.successors(node)))
 
-    def graph_fariness(self, node_goodness):
+    def graph_fairness(self):
         # calculate the fariness of all nodes
         # param graph (directed networkx graph) 
         # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
@@ -175,7 +176,7 @@ class GraphAnalyzer:
         start_time = time.monotonic()
 
         for node in self.graph.nodes():
-            fairness = self.node_fairness(node, node_goodness)
+            fairness = self.node_fairness(node)
             nodes_fairness[node] = fairness
         
         end_time = time.monotonic()
@@ -193,4 +194,32 @@ class GraphAnalyzer:
 
         # we return less node bc we removed node that has only 1 successor or 0 successor
         return nodes_fairness, min_node_fariness, max_node_fairness
+
+    def are_transations_casual(self, alpha):
+        # Hypotesis testing
+        # HO : there is indipendence between nodes connections ( transanctions are casual ) 
+        # H1 : there is correlation between nodes connetions   ( transaction are not casual, i.e. better users tend to receive more transactions )
+        # alpha (float) : confidence level
+        # return (boolean) : true if the transactions are casual, false if there are some correlations among them
+
+        rand_graph_number = 10
+        degree_sequence = sorted([d for n, d in self.graph.degree()], reverse = True)
+        original_degree_distribution = np.unique(degree_sequence, return_counts = True)[1]# here I have (sorted degree values array)(number of nodes with the corresponding degree value)
+        #let's consider the second array variance and compare same result on some random graph with the same characteristics of the original one
+
+        p_values = []
+        for i in range(rand_graph_number):
+          #random graph generation
+          r_g = nx.erdos_renyi_graph(n=self.graph.number_of_nodes(), p=((self.graph.number_of_edges()/scipy.special.binom(self.graph.number_of_nodes(),2))), seed=None, directed=True) # p is set such that I have the same number of edges in expectation
+          degree_sequence = sorted([d for n, d in r_g.degree()], reverse = True)
+          r_g_degree_distribution = np.unique(degree_sequence, return_counts = True)[1]# here I have (sorted degree values array)(number of nodes with the corresponding degree value)
+          #let's consider the second array variance and compare same result on some random graph with the same characteristics of the original one
+          p_values.append(levene(original_degree_distribution, r_g_degree_distribution))
+
+        for stat in p_values:
+            if stat[1] > alpha:
+                return True # if p value is more than alpha, the null hp is likely to happen
+        return False # all p values are less than alpha, null hp is unlikely to happen
+
         
+

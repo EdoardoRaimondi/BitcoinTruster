@@ -36,6 +36,9 @@ def main():
 
     analyzer = GraphAnalyzer(graph)
 
+    print("---STATISTICAL ANALYSIS---")
+    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
+
     # calculate degree of all nodes of the graph
     degree_nodes, max_degree_node = analyzer.graph_in_degree()
 
@@ -50,7 +53,7 @@ def main():
     goodness_nodes, max_goodness_node, min_goodness_node = analyzer.graph_goodness()
 
     # graph fariness score
-    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fariness(goodness_nodes)
+    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fairness()
 
     # first briefly analyses
     print("  NODE   |  DEGREE  | CLOSENESS | BETWEENNESS | GOODNESS |")

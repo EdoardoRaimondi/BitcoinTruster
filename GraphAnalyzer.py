@@ -191,6 +191,6 @@ class GraphAnalyzer:
         print("worst node: {} has fairness: {}".format(max_node_fairness, nodes_fairness[max_node_fairness]))
         print("best node: {} has fairness: {}".format(min_node_fariness, nodes_fairness[min_node_fariness]))
 
-        
+        # we return less node bc we removed node that has only 1 successor or 0 successor
         return nodes_fairness, min_node_fariness, max_node_fairness
         

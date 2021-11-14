@@ -61,6 +61,13 @@ def main():
     print("   {}   | {} | {} |{}|{}".format(min_goodness_node, degree_nodes[min_goodness_node], centrality_nodes[min_goodness_node], betweenness_nodes[min_goodness_node], goodness_nodes[min_goodness_node]))
 
     # ----------------------------------------------------------
+    #                     PRINT SOME GRAPHS
+    # ----------------------------------------------------------
+
+    # graph that show goodness-fairness for 100 nodes
+    MyUtility.drawGraphGoodFair(goodness_nodes, fairness_nodes, 20)
+
+    # ----------------------------------------------------------
     #                   PRINT SOME SUBGRAPHS
     # ----------------------------------------------------------
 

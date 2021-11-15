@@ -6,6 +6,7 @@ import networkx as nx
 import sys
 import math
 from networkx.classes.graph import Graph
+from numpy import float16
 
 def weighted_incoming_mean(graph, node):
     # calculate the weighted mean of incoming edges of input node on the input graph
@@ -32,46 +33,36 @@ def min_max(dict):
             min = dict[key]
     return node_min, node_max
 
-def drawsubgraph(graph, node, type):
-    # param    (networkx graph) : directed graph
-    # param       (integer)     : value of a node
-    # param       (integer)     : type of graph we want, for now possible values are:
-    #                              -- 1 : draw a graph with entering neighbors of the given node
-    #                              -- 2 : draw a graph with outgoing neighbors from the given node
-    #                              -- 3 : draw a graph with all the neighbors of the given node
-    # raises networkxerror if node not in the graph
+def drawSubgraph(graph, nodes, values_nodes, type):
+    # param   (networkx graph) : directed graph
+    # param       (list)      : list with the id of the nodes that we want to print out
+    # param       (dict)      : dict key-values as node id-values
+    # param     (integer)     : type of graph we want, for now possible values are:
+    #                              -- 1 : draw a graph with goodness as values passed
+    #                              -- 2 : draw a graph with fairness as values passed
     # draw a wanted subgraph dipends on the type subgraph
 
-    # preliminary check
-    if 0 < type and type < 4:
-        # initialize the subgraph
-        subgraph = nx.DiGraph()
-        subgraph.add_node(node)
+    subgraph = nx.DiGraph()
+    subgraph.add_nodes_from(nodes)
 
+    # calculate the labels to print
+    labels_dict = {}
+    for node in nodes:
         if type == 1:
-            subnodes = graph.predecessors(node)
-            for previous_node in subnodes:
-                subgraph.add_edge(previous_node, node)
-            figure1 = plt.subplot(121)
-            nx.draw(subgraph, with_labels=True)
-            
-        if type == 2:
-            subnodes = graph.successors(node)
-            for successor_node in subnodes:
-                subgraph.add_edge(node, successor_node)
-            figure1 = plt.subplot(121)
-            nx.draw(subgraph, with_labels=True)
-            
-        if type == 3:
-            subnodes_predecessor = graph.predecessors(node)
-            for previous_node in subnodes_predecessor:
-                subgraph.add_edge(previous_node, node)
+            labels_dict[node] = "Node id: {}, \nGoodness: {}".format(node, float16(values_nodes[node]))
+        else:
+            labels_dict[node] = "Node id: {}, \Fairness: {}".format(node, float16(values_nodes[node]))
 
-            subnodes_successor = graph.successors(node)
-            for successor_node in subnodes_successor:
-                subgraph.add_edge(node, successor_node)
-            figure1 = plt.subplot(121)
-            nx.draw(subgraph, with_labels=True)
+    # create the subgraph
+    for node1 in list(nodes):
+        for node2 in list(nodes)[1:]:
+            if graph.has_edge(node1, node2):
+                subgraph.add_edge(node1, node2)
+    
+    # print out the graph created
+    plt.title("Subgraph")
+    nx.draw(subgraph, with_labels=True, labels=labels_dict)
+    plt.show()
 
 def drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, number):
     # param    (dict)  : dict key-value as node-degree

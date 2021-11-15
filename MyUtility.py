@@ -86,9 +86,9 @@ def drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, numb
     sorted_nodes_betweenness = dict(sorted(betweenness_nodes.items()))
 
     # plot the values
-    plt.plot(sorted_nodes_degree.keys()[:number], sorted_nodes_degree.values()[:number], label='Degree', marker="s")
-    plt.plot(sorted_nodes_centrality.keys()[:number], sorted_nodes_centrality.values()[:number], label='Closeness Centrality', marker="s")
-    plt.plot(sorted_nodes_betweenness.keys()[:number], sorted_nodes_betweenness.values()[:number], label='Betweenness Centrality', marker="s")
+    plt.plot(list(sorted_nodes_degree.keys())[:number], list(sorted_nodes_degree.values())[:number], label='Degree', marker="s")
+    plt.plot(list(sorted_nodes_centrality.keys())[:number], list(sorted_nodes_centrality.values())[:number], label='Closeness Centrality', marker="s")
+    plt.plot(list(sorted_nodes_betweenness.keys())[:number], list(sorted_nodes_betweenness.values())[:number], label='Betweenness Centrality', marker="s")
     plt.xlabel('Node')
     plt.ylabel('value')
     plt.title('Degree-Closeness Centrality-Between Centrality for each node')

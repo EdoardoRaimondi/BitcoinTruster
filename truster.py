@@ -82,9 +82,11 @@ def main():
 
     # subgraph for goodness node
     nodes_id_goodness = analyzer.subgraphGoodness(goodness_nodes, 2)
+    print(nodes_id_goodness)
 
     # subgraph for fairness node
     nodes_id_fairness = analyzer.subgraphFairness(fairness_nodes, 2)
+    print(nodes_id_fairness)
 
 if __name__ == "__main__":
     main()

@@ -79,11 +79,11 @@ def main():
 
     # subgraph for goodness node
     nodes_id_goodness = analyzer.subgraphGoodness(goodness_nodes, 2) # 1, 1201
-    MyUtility.drawSubgraph(graph, list(nodes_id_goodness), goodness_nodes)
+    MyUtility.drawSubgraph(graph, list(nodes_id_goodness), goodness_nodes, 1)
 
     # subgraph for fairness node
     nodes_id_fairness = analyzer.subgraphFairness(fairness_nodes, 2) # 695, 696
-    MyUtility.drawSubgraph(graph, list(nodes_id_fairness), fairness_nodes)
+    MyUtility.drawSubgraph(graph, list(nodes_id_fairness), fairness_nodes, 0)
 
 if __name__ == "__main__":
     main()

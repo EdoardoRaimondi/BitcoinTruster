@@ -1,5 +1,6 @@
 import networkx as nx
-import my_utility
+import MyUtility
+import numpy as np
 import pandas as pd
 from GraphAnalyzer import GraphAnalyzer
 
@@ -35,8 +36,11 @@ def main():
 
     analyzer = GraphAnalyzer(graph)
 
+    print("---STATISTICAL ANALYSIS---")
+    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
+
     # calculate degree of all nodes of the graph
-    degree_nodes, max_degree_node = analyzer.graph_degree()
+    degree_nodes, max_degree_node = analyzer.graph_in_degree()
 
     # calculate the closeness centrality for all node in the graph
     centrality_nodes, max_centrality_node = analyzer.graph_centrality()
@@ -48,6 +52,9 @@ def main():
     print("goodness score of a random node : {}".format(analyzer.node_goodness(905)))
     goodness_nodes, max_goodness_node, min_goodness_node = analyzer.graph_goodness()
 
+    # graph fariness score
+    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fairness()
+
     # first briefly analyses
     print("  NODE   |  DEGREE  | CLOSENESS | BETWEENNESS | GOODNESS |")
     print("   {}   | {} | {} |{}|{}".format(max_degree_node, degree_nodes[max_degree_node], centrality_nodes[max_degree_node], betweenness_nodes[max_degree_node], goodness_nodes[max_degree_node]))
@@ -57,12 +64,26 @@ def main():
     print("   {}   | {} | {} |{}|{}".format(min_goodness_node, degree_nodes[min_goodness_node], centrality_nodes[min_goodness_node], betweenness_nodes[min_goodness_node], goodness_nodes[min_goodness_node]))
 
     # ----------------------------------------------------------
+    #                     PRINT SOME GRAPHS
+    # ----------------------------------------------------------
+
+    # graph that show degree - closenness centrality and betweenness centrality
+    MyUtility.drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, 100)
+
+    # graph that show goodness-fairness for 100 nodes
+    MyUtility.drawGraphGoodFair(goodness_nodes, fairness_nodes, 20)
+
+    # ----------------------------------------------------------
     #                   PRINT SOME SUBGRAPHS
     # ----------------------------------------------------------
 
-    # subgraph with the node that has max centrality
-    my_utility.drawsubgraph(graph, max_centrality_node, 2) # non disegna correttamente, devo rivedere una cosa
+    # subgraph for goodness node
+    nodes_id_goodness = analyzer.subgraphGoodness(goodness_nodes, 2) # 1, 1201
+    MyUtility.drawSubgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
+    # subgraph for fairness node
+    nodes_id_fairness = analyzer.subgraphFairness(fairness_nodes, 2) # 695, 696
+    MyUtility.drawSubgraph(graph, list(nodes_id_fairness), fairness_nodes)
 
 if __name__ == "__main__":
     main()

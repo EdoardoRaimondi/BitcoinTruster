@@ -166,7 +166,7 @@ class GraphAnalyzer:
         return variance / len(list(self.graph.successors(node)))
 
     def graph_fairness(self):
-        # calculate the fariness of all nodes
+        # calculate the fairness of all nodes
         # param graph (directed networkx graph) 
         # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
         # return   (dict), (int), (int)    : return a dict key-value as node-fairness, node with min and max fairness
@@ -223,7 +223,7 @@ class GraphAnalyzer:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
         
-    def subgraphGoodness(self, goodness_nodes, number):
+    def subgraph_goodness(self, goodness_nodes, number):
         # calclulate the subgraph with grater goodness
         # param graph (directed networkx graph) 
         # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
@@ -260,7 +260,7 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
-    def subgraphFairness(self, fairness_nodes, number):
+    def subgraph_fairness(self, fairness_nodes, number):
         # calclulate the subgraph with grater goodness
         # param graph (directed networkx graph) 
         # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value

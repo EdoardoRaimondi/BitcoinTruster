@@ -33,7 +33,7 @@ def min_max(dict):
             min = dict[key]
     return node_min, node_max
 
-def drawSubgraph(graph, nodes, values_nodes, type):
+def draw_subgraph(graph, nodes, values_nodes, type):
     # param   (networkx graph) : directed graph
     # param       (list)      : list with the id of the nodes that we want to print out
     # param       (dict)      : dict key-values as node id-values
@@ -64,7 +64,7 @@ def drawSubgraph(graph, nodes, values_nodes, type):
     nx.draw(subgraph, with_labels=True, labels=labels_dict)
     plt.show()
 
-def drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, number):
+def draw_graph_centrality(degree_nodes, centrality_nodes, betweenness_nodes, number):
     # param    (dict)  : dict key-value as node-degree
     # param    (dict)  : dict key-value as node-closeness centrality
     # param    (dict)  : dict key-value as node-betweenness centrality
@@ -89,7 +89,7 @@ def drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, numb
     plt.show()
 
 
-def drawGraphGoodFair(nodes_goodness, nodes_fairness, number):
+def draw_graph_good_fair(nodes_goodness, nodes_fairness, number):
     # param    (dict)  : dict key-value as node-goodness
     # param    (dict)  : dict key-value as node-fairness
     # param    (int)   : number of nodes that we want to see in the graph

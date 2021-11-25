@@ -307,12 +307,9 @@ class GraphAnalyzer:
         if(num_processor == 0):#We cannot have the number of processor equalt to zero! Or we will use the other mathod!
             pass
         combination_nodes = list()
-        num_nodes = len(list(combination_nodes))
         for elem in combinations(self.graph.nodes, number):
             combination_nodes.append(elem)
         num_nodes = (len(combination_nodes))
-        print("Len of slice graph!")
-        print(num_nodes)
         slice_number = round((num_nodes/num_processor)+1)
         if(slice_number > number):
             pass
@@ -329,5 +326,5 @@ class GraphAnalyzer:
             proc.join()#We need to wait that all the process are finished :)
         #Work in progress
         end_time = time.monotonic()
-        print("-----Time------")
+        print("-----Time end------")
         print(end_time-start_time)

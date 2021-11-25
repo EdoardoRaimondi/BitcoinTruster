@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import sys
 import math
+import numpy as np
 from networkx.classes.graph import Graph
 from numpy import float16
 
@@ -51,7 +52,7 @@ def draw_subgraph(graph, nodes, values_nodes, type):
         if type == 1:
             labels_dict[node] = "Node id: {}, \nGoodness: {}".format(node, float16(values_nodes[node]))
         else:
-            labels_dict[node] = "Node id: {}, \Fairness: {}".format(node, float16(values_nodes[node]))
+            labels_dict[node] = "Node id: {}, \nFairness: {}".format(node, float16(values_nodes[node]))
 
     # create the subgraph
     for node1 in list(nodes):
@@ -64,30 +65,66 @@ def draw_subgraph(graph, nodes, values_nodes, type):
     nx.draw(subgraph, with_labels=True, labels=labels_dict)
     plt.show()
 
-def draw_graph_centrality(degree_nodes, centrality_nodes, betweenness_nodes, number):
-    # param    (dict)  : dict key-value as node-degree
-    # param    (dict)  : dict key-value as node-closeness centrality
-    # param    (dict)  : dict key-value as node-betweenness centrality
-    # param    (int)   : number of nodes that we want to see in the graph
-    # draw a graph with some nodes and their the values of degree, closeness centrality and betweenness centrality
+def draw_histogram(graph, type):
+    # param   (networkx graph) : directed graph
+    # param      (integer)     : type of values that we are looking for, possible values:
+    #                            -- 0 we want a histogram of edges
+    #                            -- 1 we want a histogram with global degree
+    #                            -- 2 we want a histogram with in degree and out degree
+    # draw a wanted subgraph dipends on the type subgraph
 
-    # sort the dicts
-    sorted_nodes_degree = dict(sorted(degree_nodes.items()))
-    sorted_nodes_centrality = dict(sorted(centrality_nodes.items()))
-    sorted_nodes_betweenness = dict(sorted(betweenness_nodes.items()))
+    if type == 0:
+        # we want the edges histogram
+        weights = np.array(list(nx.get_edge_attributes(graph, 'weight').values())) # contains all weights
+        unique, counts = np.unique(weights, return_counts=True)
+        count = dict(zip(unique, counts))
+        x_label = "edge weights"
+        title = "Edge weights histogram"
+        width = 0.3
+    elif type == 1:
+        # we want the global degree histogram
+        x_in = list(dict(graph.in_degree(graph.nodes())).values())
+        x_out = list(dict(graph.out_degree(graph.nodes())).values())
+        x = np.array(x_in + x_out)
+        unique, counts = np.unique(x, return_counts=True)
+        count = dict(zip(unique, counts))
+        x_label = "degree"
+        title = "Generale degree (in degree + out degree) histogram"
+        width = 1.5
+    elif type == 2:
+        # we want the histogram of in degree and out degree
+        x_in = np.array(list(dict(graph.in_degree(graph.nodes())).values()))
+        x_out = np.array(list(dict(graph.out_degree(graph.nodes())).values()))
+        unique, counts = np.unique(x_in, return_counts=True)
+        count_in = dict(zip(unique, counts))
+        unique, counts = np.unique(x_out, return_counts=True)
+        count_out = dict(zip(unique, counts))
+        in_title = "In egree histogram"
+        out_title = "Out degree histogram"
+        width = 1.5
+        
+        # plots
+        fig, axs = plt.subplots(2)
+        axs[0].bar(list(count_in.keys()), list(count_in.values()), width=width, align='center', color='b')
+        axs[0].set_title(in_title)
+        axs[0].set(ylabel="count", xlabel="degree")
+        axs[1].bar(list(count_out.keys()), list(count_out.values()), width=width, align='center', color='r')
+        axs[1].set_title(out_title)
+        axs[1].set(xlabel="degree", ylabel="count")
+        fig.tight_layout()
+        plt.show()
+        return
+    
+    # prepare plot for single histogram
+    if type == 0 or type == 1:
 
-    # plot the values
-    plt.plot(list(sorted_nodes_degree.keys())[:number], list(sorted_nodes_degree.values())[:number], label='Degree', marker="s")
-    plt.plot(list(sorted_nodes_centrality.keys())[:number], list(sorted_nodes_centrality.values())[:number], label='Closeness Centrality', marker="s")
-    plt.plot(list(sorted_nodes_betweenness.keys())[:number], list(sorted_nodes_betweenness.values())[:number], label='Betweenness Centrality', marker="s")
-    plt.xlabel('Node')
-    plt.ylabel('value')
-    plt.title('Degree-Closeness Centrality-Between Centrality for each node')
-    plt.legend()
+        # plot the results  
+        plt.bar(list(count.keys()), list(count.values()), width=width, align='center', color='blue')
+        plt.xlabel(x_label)
+        plt.ylabel("count")
+        plt.title(title)
 
-    # show the graph
     plt.show()
-
 
 def draw_graph_good_fair(nodes_goodness, nodes_fairness, number):
     # param    (dict)  : dict key-value as node-goodness
@@ -128,3 +165,14 @@ def draw_graph_good_fair(nodes_goodness, nodes_fairness, number):
 
     # show the graph
     plt.show()
+
+def give_node_features(list_all_nodes, first_dict, second_dict):
+    # function that given 2 dict and a list of interested keys, return a dict with keys that stay in bot dict passed and
+    # values the 2 values of the dict passed. In our case the first dict is the goodness and so we descard the outlinears
+    # so the one that has 0 as goodness value
+    nodes_features = {}
+    for node in list_all_nodes:
+        if node in first_dict.keys() and node in second_dict.keys():
+            if first_dict[node] != 0:
+                nodes_features[node] = [first_dict[node], second_dict[node]]
+    return nodes_features

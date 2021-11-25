@@ -16,7 +16,6 @@ from GraphAnalyzer import GraphAnalyzer
 
 def main():  
 
-
     # --------------------------------- 
     #        FILE MANIPULATION
     # ---------------------------------
@@ -34,41 +33,29 @@ def main():
     #             ANALYSES
     # ---------------------------------
 
+    # print two graph to understand what we have in term of edges and degree
+    MyUtility.draw_histogram(graph,0)
+    MyUtility.draw_histogram(graph,1)
+    MyUtility.draw_histogram(graph,2)
+
     analyzer = GraphAnalyzer(graph)
 
     print("---STATISTICAL ANALYSIS---")
-    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
+#    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
 
     # calculate degree of all nodes of the graph
     degree_nodes, max_degree_node = analyzer.graph_in_degree()
 
-    # calculate the closeness centrality for all node in the graph
-    centrality_nodes, max_centrality_node = analyzer.graph_centrality()
-
-    # calculate the betweenness centrality for all node in the graph
-    betweenness_nodes, max_betweennes_node = analyzer.graph_betweenness()
-
     # graph goodnees score
-    print("goodness score of a random node : {}".format(analyzer.node_goodness(905)))
-    goodness_nodes, max_goodness_node, min_goodness_node = analyzer.graph_goodness()
+    print("goodness score of a random node : {}".format(analyzer.node_goodness(905, degree_nodes[max_degree_node])))
+    goodness_nodes = analyzer.graph_goodness(max_degree = degree_nodes[max_degree_node])
 
     # graph fariness score
-    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fairness()
-
-    # first briefly analyses
-    print("  NODE   |  DEGREE  | CLOSENESS | BETWEENNESS | GOODNESS |")
-    print("   {}   | {} | {} |{}|{}".format(max_degree_node, degree_nodes[max_degree_node], centrality_nodes[max_degree_node], betweenness_nodes[max_degree_node], goodness_nodes[max_degree_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_centrality_node, degree_nodes[max_centrality_node], centrality_nodes[max_centrality_node], betweenness_nodes[max_centrality_node], goodness_nodes[max_centrality_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_betweennes_node, degree_nodes[max_betweennes_node], centrality_nodes[max_betweennes_node], betweenness_nodes[max_betweennes_node], goodness_nodes[max_betweennes_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_goodness_node, degree_nodes[max_goodness_node], centrality_nodes[max_goodness_node], betweenness_nodes[max_goodness_node], goodness_nodes[max_goodness_node]))
-    print("   {}   | {} | {} |{}|{}".format(min_goodness_node, degree_nodes[min_goodness_node], centrality_nodes[min_goodness_node], betweenness_nodes[min_goodness_node], goodness_nodes[min_goodness_node]))
+    fairness_nodes = analyzer.graph_fairness()
 
     # ----------------------------------------------------------
     #                     PRINT SOME GRAPHS
     # ----------------------------------------------------------
-
-    # graph that show degree - closenness centrality and betweenness centrality
-    MyUtility.draw_graph_centrality(degree_nodes, centrality_nodes, betweenness_nodes, 100)
 
     # graph that show goodness-fairness for 100 nodes
     MyUtility.draw_graph_good_fair(goodness_nodes, fairness_nodes, 20)
@@ -78,12 +65,27 @@ def main():
     # ----------------------------------------------------------
 
     # subgraph for goodness node
-    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
-    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
+    print("---SEARCH SUBGRAPHS---")
+#    nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) -> Dovrebbe funzionare da utilizzare al posto 
+#                                                                          di subgraph_goodness e fairness con il type 1 o 2
+#    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
+#    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
     # subgraph for fairness node
-    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
-    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+#    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
+#    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+
+    # ----------------------------------------------------------
+    #                    CALCULATE FEATURES
+    # ----------------------------------------------------------
+
+    print("---CLUSTERING---")
+    # there is another assumptions:
+    #   - we consider only the nodes that has fairness and goodness values 
+    nodes_features = MyUtility.give_node_features(list(graph.nodes()), goodness_nodes, fairness_nodes)
+    analyzer.cluster(2,list(nodes_features.values()))
+
+    # last, we want to know where are the node that was 
 
 if __name__ == "__main__":
     main()

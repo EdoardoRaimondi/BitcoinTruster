@@ -308,9 +308,6 @@ class GraphAnalyzer:
             pass
         combination_nodes = list()
         num_nodes = len(list(combination_nodes))
-        print("--------")
-        print(num_nodes)
-        print("--------")
         for elem in combinations(self.graph.nodes, number):
             combination_nodes.append(elem)
         num_nodes = (len(combination_nodes))
@@ -323,16 +320,14 @@ class GraphAnalyzer:
         return_dict = manager.dict()
         jobs = []
         start_time = time.monotonic()
-        for i in range(num_processor):
-            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))
-            print("Slice:")
-            print(slice_graph[2])
+        for i in range(num_processor):#Starting to slice the body of the function
+            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))#Work in progress
             p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(i, return_dict, self.graph, fairness_nodes, slice_graph))
             jobs.append(p)
             p.start()
         for proc in jobs:
             proc.join()#We need to wait that all the process are finished :)
-        min = math.inf
+        #Work in progress
         end_time = time.monotonic()
         print("-----Time------")
         print(end_time-start_time)

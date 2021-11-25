@@ -22,12 +22,11 @@ class ThreadingGraphAnalyzer(Thread):
 
 #Multiprocessing
 def worker(procnum, return_dict, graph, fairness_nodes,slice_graph):
-    """worker function"""
-    print(str(procnum) + " present!")
+    """worker function for processing"""
+    print(str(procnum) + " process")
     min_fairness = math.inf
     final_nodes_id = []
     start_time = time.monotonic()
-    print("UUUUU")
     for nodes in slice_graph:
         subgraph = graph.subgraph(nodes)
         # check if it is connected
@@ -41,13 +40,11 @@ def worker(procnum, return_dict, graph, fairness_nodes,slice_graph):
                 final_nodes_id = nodes
     end_time = time.monotonic()
     print(end_time- start_time)#The time for computing the subgraph
-    print("Final node!!!!!!")
-    print(final_nodes_id)
     return_dict[min_fairness] = final_nodes_id
 
 
 
-#Threading
+#Threading work in progress
 def singleThreadPiece(graph, fairness_nodes,number):
         min_fairness = math.inf
         final_nodes_id = []

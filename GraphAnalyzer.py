@@ -1,18 +1,22 @@
+import itertools
 from operator import truediv
 import time
 import sys
 import math
+import threading
 import networkx as nx
 import pandas as pd
 import numpy as np
 from scipy.stats import levene
 import scipy
 import MyUtility
+import ThreadingGraphAnalyzer
 import matplotlib.pyplot as plt
 from itertools import combinations
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
+import multiprocessing
 from networkx.classes.function import is_directed, number_of_nodes, subgraph, degree
 
 class GraphAnalyzer:
@@ -297,3 +301,38 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
+
+#Multiprocessing it's managed by the operation system
+    def paralelSubgraph(self, fairness_nodes,num_processor,number):
+        if(num_processor == 0):#We cannot have the number of processor equalt to zero! Or we will use the other mathod!
+            pass
+        combination_nodes = list()
+        num_nodes = len(list(combination_nodes))
+        print("--------")
+        print(num_nodes)
+        print("--------")
+        for elem in combinations(self.graph.nodes, number):
+            combination_nodes.append(elem)
+        num_nodes = (len(combination_nodes))
+        print("Len of slice graph!")
+        print(num_nodes)
+        slice_number = round((num_nodes/num_processor)+1)
+        if(slice_number > number):
+            pass
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        jobs = []
+        start_time = time.monotonic()
+        for i in range(num_processor):
+            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))
+            print("Slice:")
+            print(slice_graph[2])
+            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(i, return_dict, self.graph, fairness_nodes, slice_graph))
+            jobs.append(p)
+            p.start()
+        for proc in jobs:
+            proc.join()#We need to wait that all the process are finished :)
+        min = math.inf
+        end_time = time.monotonic()
+        print("-----Time------")
+        print(end_time-start_time)

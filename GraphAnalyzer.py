@@ -1,18 +1,22 @@
+import itertools
 from operator import truediv
 import time
 import sys
 import math
+import threading
 import networkx as nx
 import pandas as pd
 import numpy as np
 from scipy.stats import levene
 import scipy
 import MyUtility
+import ThreadingGraphAnalyzer
 import matplotlib.pyplot as plt
 from itertools import combinations
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
+import multiprocessing
 from networkx.classes.function import is_directed, number_of_nodes, subgraph, degree
 
 class GraphAnalyzer:
@@ -166,7 +170,7 @@ class GraphAnalyzer:
         return variance / len(list(self.graph.successors(node)))
 
     def graph_fairness(self):
-        # calculate the fariness of all nodes
+        # calculate the fairness of all nodes
         # param graph (directed networkx graph) 
         # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
         # return   (dict), (int), (int)    : return a dict key-value as node-fairness, node with min and max fairness
@@ -223,7 +227,7 @@ class GraphAnalyzer:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
         
-    def subgraphGoodness(self, goodness_nodes, number):
+    def subgraph_goodness(self, goodness_nodes, number):
         # calclulate the subgraph with grater goodness
         # param graph (directed networkx graph) 
         # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
@@ -260,7 +264,7 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
-    def subgraphFairness(self, fairness_nodes, number):
+    def subgraph_fairness(self, fairness_nodes, number):
         # calclulate the subgraph with grater goodness
         # param graph (directed networkx graph) 
         # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
@@ -297,3 +301,30 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
+
+#Multiprocessing it's managed by the operation system
+    def paralelSubgraph(self, fairness_nodes,num_processor,number):
+        if(num_processor == 0):#We cannot have the number of processor equalt to zero! Or we will use the other mathod!
+            pass
+        combination_nodes = list()
+        for elem in combinations(self.graph.nodes, number):
+            combination_nodes.append(elem)
+        num_nodes = (len(combination_nodes))
+        slice_number = round((num_nodes/num_processor)+1)
+        if(slice_number > number):
+            pass
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        jobs = []
+        start_time = time.monotonic()
+        for i in range(num_processor):#Starting to slice the body of the function
+            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))#Work in progress
+            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(i, return_dict, self.graph, fairness_nodes, slice_graph))
+            jobs.append(p)
+            p.start()
+        for proc in jobs:
+            proc.join()#We need to wait that all the process are finished :)
+        #Work in progress
+        end_time = time.monotonic()
+        print("-----Time end------")
+        print(end_time-start_time)

@@ -68,22 +68,22 @@ def main():
     # ----------------------------------------------------------
 
     # graph that show degree - closenness centrality and betweenness centrality
-    MyUtility.drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, 100)
+    MyUtility.draw_graph_centrality(degree_nodes, centrality_nodes, betweenness_nodes, 100)
 
     # graph that show goodness-fairness for 100 nodes
-    MyUtility.drawGraphGoodFair(goodness_nodes, fairness_nodes, 20)
+    MyUtility.draw_graph_good_fair(goodness_nodes, fairness_nodes, 20)
 
     # ----------------------------------------------------------
     #                   PRINT SOME SUBGRAPHS
     # ----------------------------------------------------------
 
     # subgraph for goodness node
-    nodes_id_goodness = analyzer.subgraphGoodness(goodness_nodes, 2) # 1, 1201
-    MyUtility.drawSubgraph(graph, list(nodes_id_goodness), goodness_nodes)
+    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
+    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
     # subgraph for fairness node
-    nodes_id_fairness = analyzer.subgraphFairness(fairness_nodes, 2) # 695, 696
-    MyUtility.drawSubgraph(graph, list(nodes_id_fairness), fairness_nodes)
+    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
+    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
 
 if __name__ == "__main__":
     main()

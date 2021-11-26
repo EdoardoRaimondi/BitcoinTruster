@@ -195,35 +195,63 @@ class GraphAnalyzer:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
     
-    def cluster(self, n_cluster, X, plot=True):
+    def cluster(self, n_cluster, X, plot=True, transparance=True):
         # do a clustering
         # param graph (directed networkx graph) 
-        # param n_cluster   (int)   : number of cluster that we want
-        # param   X  (list of list) : samples to do a clustering
-        # param    plot   (boolean) : True to plot the results (work with n_cluster in [2,4]), false otherwise
+        # param n_cluster   (int)     : number of cluster that we want
+        # param     X      (dict)     : dict key-value as id_node-features
+        # param    plot   (boolean)   : True to plot the results (work with n_cluster = 2), false otherwise. Moreover, 
+        #                               the results plotted are transparent with respect their degree
+        # param transparance (boolean): Ture if the plot must show the transparance and the original cluster 0 otherwise
+        #                                  (only original cluster)
 
+        # check to transparance parameter
+        if transparance:
+            print("Calculte degree for each node")
+            nodes_degree = {}
+            for node in X.keys():
+                in_degree = self.graph.in_degree(node)
+                out_degree = self.graph.out_degree(node)
+                nodes_degree[node] = out_degree+in_degree
+            max_degree = max(nodes_degree.values())
+
+            # prepare to plot both images
+            fig, axs = plt.subplots(2)
+        
         print("Do kmeans...")
-        kmeans = KMeans(n_clusters=n_cluster, max_iter=30000, n_init=10).fit(X)
+        kmeans = KMeans(n_clusters=n_cluster, max_iter=30000, n_init=10).fit(list(X.values()))
         print("             ...[done]")
         print("Centroids:")
         print(kmeans.cluster_centers_)
 
         if plot:
             print("Wait to print the results, in our case features 0 is goodness and feature 1 is fairness")
-            for i in range(0, len(X)):
+            for i in range(0, len(list(X.values()))):
                 predict = list(kmeans.labels_)[i]
-                features = X[i]
+                features = list(X.values())[i]
                 if predict == 0:
-                    plt.scatter(features[0], features[1], color='k')
+                    if transparance:
+                        axs[0].scatter(features[0], features[1], color='k', alpha=nodes_degree[list(X.keys())[i]]/max_degree)
+                        axs[1].scatter(features[0], features[1], color='k')
+                    else:
+                        plt.scatter(features[0], features[1], color='k')
                 elif predict == 1:
-                    plt.scatter(features[0], features[1], color='r')
-                elif predict == 2:
-                    plt.scatter(features[0], features[1], color='b')
-                elif predict == 3:
-                    plt.scatter(features[0], features[1], color='y')
+                    if transparance:
+                        axs[0].scatter(features[0], features[1], color='r', alpha=nodes_degree[list(X.keys())[i]]/max_degree)
+                        axs[1].scatter(features[0], features[1], color='r')
+                    else:
+                        plt.scatter(features[0], features[1], color='r')
+            
+            if not transparance:
                 plt.title('cluster')
                 plt.xlabel('goodness')
                 plt.ylabel('fairness')
+            else:
+                axs[0].set_title("Cluster with transparences")
+                axs[0].set(ylabel="fairness", xlabel="goodness")
+                axs[1].set_title("Original cluster")
+                axs[1].set(xlabel="goodness", ylabel="fairness")
+                fig.tight_layout()
             plt.show()
 
     def search_subgraph(self, nodes_value, number, type):

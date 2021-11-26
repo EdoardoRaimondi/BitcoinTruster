@@ -41,7 +41,7 @@ def main():
     analyzer = GraphAnalyzer(graph)
 
     print("---STATISTICAL ANALYSIS---")
-#    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
+    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
 
     # calculate degree of all nodes of the graph
     degree_nodes, max_degree_node = analyzer.graph_in_degree()
@@ -68,12 +68,12 @@ def main():
     print("---SEARCH SUBGRAPHS---")
 #    nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) -> Dovrebbe funzionare da utilizzare al posto 
 #                                                                          di subgraph_goodness e fairness con il type 1 o 2
-#    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
-#    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
+    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
+    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
     # subgraph for fairness node
-#    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
-#    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
+    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
 
     # ----------------------------------------------------------
     #                    CALCULATE FEATURES
@@ -83,7 +83,7 @@ def main():
     # there is another assumptions:
     #   - we consider only the nodes that has fairness and goodness values 
     nodes_features = MyUtility.give_node_features(list(graph.nodes()), goodness_nodes, fairness_nodes)
-    analyzer.cluster(2,list(nodes_features.values()))
+    analyzer.cluster(2,nodes_features)
 
     # last, we want to know where are the node that was 
 

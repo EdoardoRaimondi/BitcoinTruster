@@ -173,6 +173,6 @@ def give_node_features(list_all_nodes, first_dict, second_dict):
     nodes_features = {}
     for node in list_all_nodes:
         if node in first_dict.keys() and node in second_dict.keys():
-            if first_dict[node] != 0:
+            if first_dict[node] != 0: # remove outlinears
                 nodes_features[node] = [first_dict[node], second_dict[node]]
     return nodes_features

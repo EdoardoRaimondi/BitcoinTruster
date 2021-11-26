@@ -20,7 +20,7 @@ def main():
     #        FILE MANIPULATION
     # ---------------------------------
     # read csv file
-    df = pd.read_csv('soc-sign-bitcoinotc.csv')
+    df = pd.read_csv('soc-sign-bitcoinalpha.csv')
     # clean it (remove last column)
     df.drop(df.columns[len(df.columns)-1], axis=1, inplace=True)
     columns_name = ['source', 'target', 'weight']
@@ -41,7 +41,7 @@ def main():
     analyzer = GraphAnalyzer(graph)
 
     print("---STATISTICAL ANALYSIS---")
-    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
+#    print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
 
     # calculate degree of all nodes of the graph
     degree_nodes, max_degree_node = analyzer.graph_in_degree()
@@ -60,6 +60,12 @@ def main():
     # graph that show goodness-fairness for 100 nodes
     MyUtility.draw_graph_good_fair(goodness_nodes, fairness_nodes, 20)
 
+    # graph degree - goodness
+    MyUtility.draw_graph_scatter(list(graph.nodes()), degree_nodes, goodness_nodes, 'degree', 'goodness', 'degree-goodness')
+
+    # graph degree - fairness
+    MyUtility.draw_graph_scatter(list(graph.nodes()), degree_nodes, fairness_nodes, 'degree', 'fairness', 'degree-fairness')
+
     # ----------------------------------------------------------
     #                   PRINT SOME SUBGRAPHS
     # ----------------------------------------------------------
@@ -68,12 +74,12 @@ def main():
     print("---SEARCH SUBGRAPHS---")
 #    nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) -> Dovrebbe funzionare da utilizzare al posto 
 #                                                                          di subgraph_goodness e fairness con il type 1 o 2
-    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
-    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
+#    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # 1, 1201
+#    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
     # subgraph for fairness node
-    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
-    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+#    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # 695, 696
+#    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
 
     # ----------------------------------------------------------
     #                    CALCULATE FEATURES

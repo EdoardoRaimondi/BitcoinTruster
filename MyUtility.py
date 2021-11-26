@@ -99,7 +99,7 @@ def draw_histogram(graph, type):
         count_in = dict(zip(unique, counts))
         unique, counts = np.unique(x_out, return_counts=True)
         count_out = dict(zip(unique, counts))
-        in_title = "In egree histogram"
+        in_title = "In degree histogram"
         out_title = "Out degree histogram"
         width = 1.5
         
@@ -164,6 +164,22 @@ def draw_graph_good_fair(nodes_goodness, nodes_fairness, number):
     plt.legend()
 
     # show the graph
+    plt.show()
+
+def draw_graph_scatter(list_all_nodes, dict_first, dict_second, name_first, name_second, title):
+    # here we plot also outlinears
+    nodes_plot = {}
+    for node in list_all_nodes:
+        if node in dict_first.keys() and node in dict_second.keys():
+            nodes_plot[node] = [dict_first[node], dict_second[node]]
+    
+    # plot the nodes
+    for node in nodes_plot.keys():
+        plt.scatter(nodes_plot[node][0], nodes_plot[node][1], color='k')
+    
+    plt.title(title)
+    plt.xlabel(name_first)
+    plt.ylabel(name_second)
     plt.show()
 
 def give_node_features(list_all_nodes, first_dict, second_dict):

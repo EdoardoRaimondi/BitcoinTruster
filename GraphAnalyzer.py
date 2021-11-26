@@ -37,11 +37,27 @@ class GraphAnalyzer:
         degree_nodes = dict(self.graph.in_degree(self.graph.nodes)) # need a conversion tu use always the same lambda function
         end_time = time.monotonic()
         max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
-        print("----DEGREE ANALYSIS----")
-        print("max degree node: {}, degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
+        print("--IN DEGREE ANALYSIS--")
+        print("max in degree node: {}, in degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
         print("execution time: {}".format(end_time-start_time))
 
         return degree_nodes, max_degree_node
+
+    def graph_out_degree(self):
+        # Calculate degree of all node in the graph
+        # param  (networkx graph) : directed graph
+        # returns      (dict)     : dict with key as node ad degree as value
+        # Print out also the exectution time and the node with max degree, node with max degree
+
+        start_time = time.monotonic()
+        degree_nodes = dict(self.graph.out_degree(self.graph.nodes)) # need a conversion tu use always the same lambda function
+        end_time = time.monotonic()
+        max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
+        print("--OUT DEGREE ANALYSIS--")
+        print("max out degree node: {}, out degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
+        print("execution time: {}".format(end_time-start_time))
+
+        return degree_nodes
 
     def node_goodness(self, node, max_degree):
         # Calculates goodnees of a node

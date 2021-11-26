@@ -192,3 +192,12 @@ def give_node_features(list_all_nodes, first_dict, second_dict):
             if first_dict[node] != 0: # remove outlinears
                 nodes_features[node] = [first_dict[node], second_dict[node]]
     return nodes_features
+
+def ranking(list_all_nodes, first_dict, second_dict, damping_factor):
+    node_value = {}
+    for node in list_all_nodes:
+        if node in first_dict.keys() and node in second_dict.keys():
+            node_value[node] = ((1+damping_factor)/len(list_all_nodes)) + damping_factor*(first_dict[node] - second_dict[node])
+    
+    sort_dict = dict(sorted(node_value.items(), key=lambda x: x[1], reverse=True))
+    return sort_dict

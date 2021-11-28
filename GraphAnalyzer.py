@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.stats import levene
+from scipy.stats import ttest_ind
 import scipy
 import MyUtility
 import ThreadingGraphAnalyzer
@@ -190,7 +191,7 @@ class GraphAnalyzer:
         # Hypotesis testing
         # HO : there is indipendence between nodes connections ( transanctions are casual ) 
         # H1 : there is correlation between nodes connetions   ( transaction are not casual, i.e. better users tend to receive more transactions )
-        # param alpha (float) : confidence level
+        # param alpha (float) : significance level
         # return (boolean) : true if the transactions are casual, false if there are some correlations among them
 
         rand_graph_number = 10
@@ -212,31 +213,31 @@ class GraphAnalyzer:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
 
-    def better_nodes_are_popular(self, alpha, X):
+    def better_nodes_are_popular(self, X, alpha = 0.05):
         # Hypotesis testing
         # H0 : there is no correlation between reputation (i.e. high goodnees, low fairness) of a node and the number of its transactions
         # H1 : node with better reputation are more likely to be involved in more transactions (i.e. be "popular")
-        # param alpha (float)  : confidence level
+        # param alpha (float)  : significance level
         # param   X    (dict)  : dict key-value as id_node-features
         # return (boolean) : true if H0 is likely to be rejected (w.r.t alpha), false otherwise.
 
         nodes_degree = dict(self.graph.degree(self.graph.nodes))
 
-        kmeans = KMeans(n_clusters=2, max_iter=30000, n_init=10).fit(list(X.values())) # perform a clustering to divide good nodes from bad nodes
+        kmeans = KMeans(n_clusters=2, max_iter=30000, n_init=10).fit(list(X.values())) # perform a clustering to distinguish good nodes from bad nodes
 
+        good_nodes_degree = []
+        bad_nodes_degree = []
         # for each cluster I create an array with the degree of each belonging node
         for i in range(0, len(list(X.values()))):
                 predict = list(kmeans.labels_)[i]
-                good_nodes_degree = []
-                bad_nodes_degree = []
                 if predict == 0:
                     good_nodes_degree.append(nodes_degree[list(X.keys())[i]])
                 else: 
                     bad_nodes_degree.append(nodes_degree[list(X.keys())[i]])
         
         #now perform two sample one tailed t-test w.r.t. to alpha(i.e. does HO holds : mean(good_nodes_degree) <= mean(bad_nodes_degree) ?)
-        values = stats.ttest_ind(good_nodes_degree, bad_nodes_degree)
-        if(values[1]/2 < alpha): # H0 is false with high ( 1 - alpha) probability ( p_value / 2 < alpha)
+        values = ttest_ind(good_nodes_degree, bad_nodes_degree)
+        if(values[1]/2 < alpha): # H0 is false with high ( 1 - alpha) probability ( p_value / 2 < alpha) (divided p_value by two since is one tailed test)
             return True
         return False # H0 is not false with high probability
     

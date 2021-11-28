@@ -182,8 +182,8 @@ def draw_graph_scatter(list_all_nodes, dict_first, dict_second, name_first, name
     plt.ylabel(name_second)
     plt.show()
 
-def give_node_features(list_all_nodes, first_dict, second_dict):
-    # function that given 2 dict and a list of interested keys, return a dict with keys that stay in bot dict passed and
+def get_node_features(list_all_nodes, first_dict, second_dict):
+    # function that given 2 dicts and a list of interested keys, return a dict with keys that stay in bot dict passed and
     # values the 2 values of the dict passed. In our case the first dict is the goodness and so we descard the outlinears
     # so the one that has 0 as goodness value
     nodes_features = {}

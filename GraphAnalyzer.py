@@ -113,7 +113,6 @@ class GraphAnalyzer:
 
                 return nodes_goodnesses
 
-    # postit comment: nodes_goodness are with the ln(in_degree(node)) -> I diveded by it (be carefull on this)
     def node_fairness(self, node):
         # calculate the fairness of a node
         # param graph (directed networkx graph) 

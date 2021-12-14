@@ -167,7 +167,13 @@ def draw_graph_good_fair(nodes_goodness, nodes_fairness, number):
     plt.show()
 
 def draw_graph_scatter(list_all_nodes, dict_first, dict_second, name_first, name_second, title):
-    # here we plot also outlinears
+    # param    (list)  : list of all nodes
+    # param    (dict)  : dict key-value as node-goodness
+    # param    (dict)  : dict key-value as node-fairness
+    # param  (string)  : name of the first dict passed 
+    # param  (string)  : name of the second dict passed 
+    # param  (string)  : title of what printed out
+    # plot and show the scatter graph with also the outlinears
     nodes_plot = {}
     for node in list_all_nodes:
         if node in dict_first.keys() and node in dict_second.keys():
@@ -183,9 +189,11 @@ def draw_graph_scatter(list_all_nodes, dict_first, dict_second, name_first, name
     plt.show()
 
 def get_node_features(list_all_nodes, first_dict, second_dict):
+    # param   (list)   : list of all keys that we are looking for
+    # param   (dict)   : first dict that has node-goodness as key-value
+    # param   (dict)   : second dict that has node-fairness as key-value
     # function that given 2 dicts and a list of interested keys, return a dict with keys that stay in bot dict passed and
-    # values the 2 values of the dict passed. In our case the first dict is the goodness and so we descard the outlinears
-    # so the one that has 0 as goodness value
+    # values the 2 values of the dict passed. 
     nodes_features = {}
     for node in list_all_nodes:
         if node in first_dict.keys() and node in second_dict.keys():
@@ -194,10 +202,15 @@ def get_node_features(list_all_nodes, first_dict, second_dict):
     return nodes_features
 
 def ranking(list_all_nodes, first_dict, second_dict, damping_factor):
+    # param  (list)  : list of all key
+    # param  (dict)  : first dict where we found the first value
+    # param  (dict)  : second dict where we found the second value
+    # param  (int)   : value of a dampling factor to recalibrate the scores
+    # return (dict)  : returna a dict key-value as node-score
     node_value = {}
     for node in list_all_nodes:
         if node in first_dict.keys() and node in second_dict.keys():
-            node_value[node] = ((1+damping_factor)/len(list_all_nodes)) + damping_factor*(first_dict[node] - second_dict[node])
+            node_value[node] = damping_factor*(first_dict[node] - second_dict[node])
     
     sort_dict = dict(sorted(node_value.items(), key=lambda x: x[1], reverse=True))
     return sort_dict

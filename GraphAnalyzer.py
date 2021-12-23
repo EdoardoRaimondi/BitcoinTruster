@@ -399,7 +399,7 @@ class GraphAnalyzer:
         min_fairness = math.inf
         final_nodes_id = []   
         start_time = time.monotonic()
-
+        print(type(fairness_nodes))
         # see all possibile combinations
         for nodes in combinations(self.graph.nodes, size):
             subgraph = self.graph.subgraph(nodes)
@@ -425,28 +425,29 @@ class GraphAnalyzer:
 
 
     #Multiprocessing it's managed by the operation system
-    def paralelSubgraph(self, fairness_nodes,num_processor,number):
+    def paralelSubgraph(self, fairness_nodes,num_processor,size_sub):
         if(num_processor == 0):#We cannot have the number of processores equal to zero! Or we will use the other method!
             pass
-        combination_nodes = list()
-        for elem in combinations(self.graph.nodes, number):
-            combination_nodes.append(elem)
-        num_nodes = (len(combination_nodes))
-        slice_number = round((num_nodes/num_processor)+1)
-        if(slice_number > number):
-            pass
+        n_d = number_of_nodes(self.graph)
+        total_gen = n_d^size_sub
+        chunck_nodes =round(total_gen/num_processor+1)
+        node_dict = dict()
+        cnt = 0
+        for node in self.graph.nodes:
+            node_dict[cnt]=node
+            cnt = cnt + 1
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
         jobs = []
         start_time = time.monotonic()
-        for i in range(num_processor):#Starting to slice the body of the function
-            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))#Work in progress
-            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(i, return_dict, self.graph, fairness_nodes, slice_graph))
+        for i in range(num_processor):
+            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker,args=(i,num_processor, return_dict, self.graph,fairness_nodes, node_dict, i*chunck_nodes, (i+1)*chunck_nodes))
             jobs.append(p)
             p.start()
         for proc in jobs:
             proc.join()#We need to wait that all the processes are finished :)
-        #Work in progress
         end_time = time.monotonic()
         print("-----Time end------")
         print(end_time-start_time)
+        for elem in return_dict:
+            print(elem)#Work in progress

@@ -1,18 +1,25 @@
+import itertools
 from operator import truediv
 import time
 import sys
 import math
+import threading
 import networkx as nx
 import pandas as pd
 import numpy as np
+from scipy import stats
 from scipy.stats import levene
+from scipy.stats import ttest_ind
 import scipy
 import MyUtility
+import ThreadingGraphAnalyzer
 import matplotlib.pyplot as plt
 from itertools import combinations
 from networkx.classes import graph
 from networkx.algorithms.centrality.closeness import closeness_centrality
 from networkx.algorithms.centrality.betweenness import betweenness_centrality
+import multiprocessing
+from sklearn.cluster import KMeans
 from networkx.classes.function import is_directed, number_of_nodes, subgraph, degree
 
 class GraphAnalyzer:
@@ -23,54 +30,38 @@ class GraphAnalyzer:
         self.graph = graph
 
     def graph_in_degree(self):
-        # Calculate degree of all node in the graph
+        # Calculate in_degree of all node in the graph
         # param  (networkx graph) : directed graph
         # returns  (dict), (int)  : dict with key as node ad degree as value
         # Print out also the exectution time and the node with max degree, node with max degree
 
         start_time = time.monotonic()
-        degree_nodes = dict(self.graph.in_degree(self.graph.nodes)) # need a conversion tu use always the same lambda function
+        degree_nodes = dict(self.graph.in_degree(self.graph.nodes))
         end_time = time.monotonic()
         max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
-        print("----DEGREE ANALYSIS----")
-        print("max degree node: {}, degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
+        print("--IN DEGREE ANALYSIS--")
+        print("max in degree node: {}, in degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
         print("execution time: {}".format(end_time-start_time))
 
         return degree_nodes, max_degree_node
 
-    def graph_centrality(self):
-        # Calculate centrality of all node in the graph
+    def graph_out_degree(self):
+        # Calculate out_degree of all node in the graph
         # param  (networkx graph) : directed graph
-        # returns  (dict), (int)  : dict with key as node ad closeness centrality as value, node with max closeness centrality
-        # Print out also the exectution time and the node with max closeness centrality
+        # returns      (dict)     : dict with key as node ad degree as value
+        # Print out also the exectution time and the node with max degree, node with max degree
 
         start_time = time.monotonic()
-        centrality_nodes = closeness_centrality(self.graph)
+        degree_nodes = dict(self.graph.out_degree(self.graph.nodes)) 
         end_time = time.monotonic()
-        max_centrality_node = max(centrality_nodes, key = lambda x: centrality_nodes[x])
-        print("----CLOSENESS CENTRALITY ANALYSIS----")
-        print("max closeness node: {}, closeness: {}".format(max_centrality_node, centrality_nodes[max_centrality_node])) 
-        print("execution time: {}".format(end_time-start_time)) #my pc 90sec
+        max_degree_node = max(degree_nodes, key = lambda x: degree_nodes[x])
+        print("--OUT DEGREE ANALYSIS--")
+        print("max out degree node: {}, out degree: {}".format(max_degree_node, degree_nodes[max_degree_node]))
+        print("execution time: {}".format(end_time-start_time))
 
-        return centrality_nodes, max_centrality_node
+        return degree_nodes
 
-    def graph_betweenness(self):
-        # Calculate betweennes of all node in the graph
-        # param  (networkx graph) : directed graph
-        # returns  (dict), (int)  : dict with key as node ad between centrality as value, node with max betweenness centrality
-        # Print out also the exectution time and the node with max betweenness centrality
-        
-        start_time = time.monotonic()
-        betweenness_nodes = betweenness_centrality(self.graph)
-        end_time = time.monotonic()
-        max_betweennes_node = max(betweenness_nodes, key = lambda x: betweenness_nodes[x])
-        print("----BETWEENNESS CENTRALITY ANALYSIS----")
-        print("max betweenness node: {}, betweenness: {}".format(max_betweennes_node, betweenness_nodes[max_betweennes_node]))  
-        print("execution time: {}".format(end_time-start_time)) #my pc 196sec
-
-        return betweenness_nodes, max_betweennes_node
-
-    def node_goodness(self, node):
+    def node_goodness(self, node, max_degree):
         # Calculates goodnees of a node
         # param   (netowrkx graph) : directed graph
         # param        (int)       : node_id
@@ -81,12 +72,12 @@ class GraphAnalyzer:
         if in_degree == 0:
             return # no grade available for this node
 
-        recalibration_factor = np.log(in_degree) # for score recalibration purposes ( see "paper" for more details)
+        recalibration_factor = np.log(in_degree) / np.log(max_degree) # for score recalibration purposes ( see "paper" for more details)
         # NB : node with only 1 grade will not be considered relevant enough, then their goodness score is 0
 
         return (MyUtility.weighted_incoming_mean(self.graph, node))*recalibration_factor
 
-    def graph_goodness(self, nodes_number=None):
+    def graph_goodness(self, max_degree, nodes_number=None):
         # Calculate goodnees of a certain number of nodes in the graph
         # param graph (directed networkx graph) 
         # param nodes_number  (int)    : number of nodes to consider.
@@ -109,8 +100,8 @@ class GraphAnalyzer:
         nodes_goodnesses = {}
         for node in node_in_degree_dict.keys():
             remaining_nodes -= 1
-            if self.node_goodness(node) != None :
-               nodes_goodnesses[node] = self.node_goodness(node)
+            if self.node_goodness(node, max_degree) != None :
+               nodes_goodnesses[node] = self.node_goodness(node, max_degree)
             if remaining_nodes == 0 : # I'm done
                 end_time = time.monotonic()
                 print("----GOODNESS ANALYSIS----")
@@ -120,9 +111,8 @@ class GraphAnalyzer:
                 print("best node: {} has goodness: {}".format(node_max_goodness, nodes_goodnesses[node_max_goodness]))
                 print("worst node: {} has goodness: {}".format(node_min_goodness, nodes_goodnesses[node_min_goodness]))
 
-                return nodes_goodnesses, node_max_goodness, node_min_goodness
+                return nodes_goodnesses
 
-    # postit comment: nodes_goodness are with the ln(in_degree(node)) -> I diveded by it (be carefull on this)
     def node_fairness(self, node):
         # calculate the fairness of a node
         # param graph (directed networkx graph) 
@@ -166,10 +156,9 @@ class GraphAnalyzer:
         return variance / len(list(self.graph.successors(node)))
 
     def graph_fairness(self):
-        # calculate the fariness of all nodes
+        # calculate the fairness of all nodes
         # param graph (directed networkx graph) 
-        # parma nodes_goodness    (dict)   : dict key-value as node-goodness_value
-        # return   (dict), (int), (int)    : return a dict key-value as node-fairness, node with min and max fairness
+        # return            (dict)         : return a dict key-value as node-fairness, node with min and max fairness
         # raises presonalized errors
 
         print("----FAIRNESS ANALYSIS----")
@@ -195,13 +184,13 @@ class GraphAnalyzer:
         print("best node: {} has fairness: {}".format(min_node_fariness, nodes_fairness[min_node_fariness]))
 
         # we return less node bc we removed node that has only 1 successor or 0 successor
-        return nodes_fairness, min_node_fariness, max_node_fairness
+        return nodes_fairness
 
     def are_transations_casual(self, alpha):
         # Hypotesis testing
         # HO : there is indipendence between nodes connections ( transanctions are casual ) 
         # H1 : there is correlation between nodes connetions   ( transaction are not casual, i.e. better users tend to receive more transactions )
-        # alpha (float) : confidence level
+        # param alpha (float) : significance level
         # return (boolean) : true if the transactions are casual, false if there are some correlations among them
 
         rand_graph_number = 10
@@ -222,15 +211,150 @@ class GraphAnalyzer:
             if stat[1] > alpha:
                 return True # if p value is more than alpha, the null hp is likely to happen
         return False # all p values are less than alpha, null hp is unlikely to happen
+
+    def better_nodes_are_popular(self, X, alpha = 0.05):
+        # Hypotesis testing
+        # H0 : there is no correlation between reputation (i.e. high goodnees, low fairness) of a node and the number of its transactions
+        # H1 : node with better reputation are more likely to be involved in more transactions (i.e. be "popular")
+        # param alpha (float)  : significance level
+        # param   X    (dict)  : dict key-value as id_node-features
+        # return (boolean) : true if H0 is likely to be rejected (w.r.t alpha), false otherwise.
+
+        nodes_degree = dict(self.graph.degree(self.graph.nodes))
+
+        kmeans = KMeans(n_clusters=2, max_iter=30000, n_init=10).fit(list(X.values())) # perform a clustering to distinguish good nodes from bad nodes
+
+        good_nodes_degree = []
+        bad_nodes_degree = []
+        # for each cluster I create an array with the degree of each belonging node
+        for i in range(0, len(list(X.values()))):
+                predict = list(kmeans.labels_)[i]
+                if predict == 0:
+                    good_nodes_degree.append(nodes_degree[list(X.keys())[i]])
+                else: 
+                    bad_nodes_degree.append(nodes_degree[list(X.keys())[i]])
         
-    def subgraphGoodness(self, goodness_nodes, number):
-        # calclulate the subgraph with grater goodness
+        #now perform two sample one tailed t-test w.r.t. to alpha(i.e. does HO holds : mean(good_nodes_degree) <= mean(bad_nodes_degree) ?)
+        values = ttest_ind(good_nodes_degree, bad_nodes_degree)
+        if(values[1]/2 < alpha): # H0 is false with high ( 1 - alpha) probability ( p_value / 2 < alpha) (divided p_value by two since is one tailed test)
+            return True
+        return False # H0 is not false with high probability
+    
+    def cluster(self, X, n_cluster=2, plot=True, transparance=True):
+        # perforom a clutering among a 2 dimensional embedding of the nodes. Node v = (goodnees, fairiness)
+        # param   graph (directed networkx graph) 
+        # param n_cluster   (int)     : number of cluster that we want
+        # param     X      (dict)     : dict key-value as id_node-features
+        # param    plot   (boolean)   : if true plot the results (work with n_cluster = 2), false otherwise.
+        # param transparance (boolean): if true the plot must show the transparance and the original cluster. 0 otherwise                               
+
+        # check to transparance parameter
+        if transparance:
+            print("Calculte degree for each node")
+            nodes_degree = dict(self.graph.degree(self.graph.nodes))
+            max_degree = max(nodes_degree.values())
+
+            # prepare to plot both images
+            fig, axs = plt.subplots(2)
+        
+        print("Do kmeans...")
+        kmeans = KMeans(n_clusters=n_cluster, max_iter=30000, n_init=10).fit(list(X.values()))
+        print("             ...[done]")
+        print("Centroids:")
+        print(kmeans.cluster_centers_)
+
+        if plot:
+            print("Wait to print the results. Feature 0 is goodness, feature 1 is fairness")
+            for i in range(0, len(list(X.values()))):
+                predict = list(kmeans.labels_)[i]
+                features = list(X.values())[i]
+                if predict == 0:
+                    if transparance:
+                        axs[0].scatter(features[0], features[1], color='k', alpha=nodes_degree[list(X.keys())[i]]/max_degree)
+                        axs[1].scatter(features[0], features[1], color='k')
+                    else:
+                        plt.scatter(features[0], features[1], color='k')
+                elif predict == 1:
+                    if transparance:
+                        axs[0].scatter(features[0], features[1], color='r', alpha=nodes_degree[list(X.keys())[i]]/max_degree)
+                        axs[1].scatter(features[0], features[1], color='r')
+                    else:
+                        plt.scatter(features[0], features[1], color='r')
+            
+            if not transparance:
+                plt.title('cluster')
+                plt.xlabel('goodness')
+                plt.ylabel('fairness')
+            else:
+                axs[0].set_title("Cluster with transparences")
+                axs[0].set(ylabel="fairness", xlabel="goodness")
+                axs[1].set_title("Original cluster")
+                axs[1].set(xlabel="goodness", ylabel="fairness")
+                fig.tight_layout()
+            plt.show()
+
+    def search_subgraph(self, nodes_value, number, type):
+        # search for a specific subgraph.
+        # param       graph (directed networkx graph) 
+        # parm       nodes_value    (dict)   : dict key-value as node-goodness_value
+        # parm        number      (int)      : number of nodes that the subgraph must has
+        # parm         type       (int)      : indicates what we are lookin for:
+        #                                         - 1 = we look for goodness
+        #                                         - 2 = we look for fairness
+        # return           (tuple)           : return the tuple with the better type value
+
+        if type == 1:
+            print("Search the subgraph with {} nodes that it has the higher goodness".format(number))
+        elif type == 2:
+            print("Search the subgraph with {} nodes that it has the lower fairness".format(number))
+        else:
+            sys.exit("[ERROR] value of type not allowed")
+
+        # parameters
+        max_goodness = -math.inf
+        min_fairness = math.inf
+        final_nodes_id = []   
+        start_time = time.monotonic()
+        
+        # see all possibile combinations
+        for nodes in combinations(nodes_value.keys(), number):
+            subgraph = self.graph.subgraph(nodes)
+
+            # check if it is connected
+            if nx.is_weakly_connected(subgraph):
+                subgraph_value = 0
+                for node in nodes:
+
+                    # check if it has a goodness value (some values don't have it)
+                    if node in nodes_value.keys():
+                        subgraph_value = subgraph_value + nodes_value[node]
+
+                # check if we need to update the values
+                if type == 1:
+                    if subgraph_value > max_goodness:
+                        max_goodness = subgraph_value
+                        final_nodes_id = nodes
+                else:
+                    if subgraph_value < min_fairness:
+                        min_fairness = subgraph_value
+                        final_nodes_id = nodes
+
+        end_time = time.monotonic()
+        print("execution time: {}".format(end_time-start_time))
+
+        return final_nodes_id
+        
+    def subgraph_goodness(self, goodness_nodes, size):
+        # calculate the subgraph with grater goodness
         # param graph (directed networkx graph) 
         # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
-        # parm        number      (int)      : number of nodes that the subgraph must has
+        # parm        size     (int)         : size of the subgraph
         # return           (tuple)           : return the tuple with the greater goodness 
 
-        print("Search the subgraph with {} nodes that it has the higher goodness".format(number))
+        if(size > self.graph.size()):
+            return
+
+        print("Search the subgraph with {} nodes that it has the higher goodness".format(size))
 
         # parameters
         max_goodness = -math.inf
@@ -238,7 +362,7 @@ class GraphAnalyzer:
         start_time = time.monotonic()
 
         # see all possibile combinations
-        for nodes in combinations(self.graph.nodes, number):
+        for nodes in combinations(self.graph.nodes, size):
             subgraph = self.graph.subgraph(nodes)
 
             # check if it is connected
@@ -260,14 +384,16 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
-    def subgraphFairness(self, fairness_nodes, number):
-        # calclulate the subgraph with grater goodness
+    def subgraph_fairness(self, fairness_nodes, size):
+        # calculate the subgraph with lowest fairness
         # param graph (directed networkx graph) 
-        # parm     goodness_nodes   (dict)   : dict key-value as node-goodness_value
-        # parm        number      (int)      : number of nodes that the subgraph must has
-        # return           (tuple)           : return the tuple with the greater goodness 
+        # parm     goodness_nodes   (dict)   : dict key-value as node-fairness_value
+        # parm        size     (int)         : size of the subgraph
+        # return           (tuple)           : return the tuple with the lowest fairness
 
-        print("Search the subgraph with {} nodes that it has the lower fairness".format(number))
+        if(size > self.graph.size()):
+            return
+        print("Search the subgraph with {} nodes that it has the lower fairness".format(size))
 
         # parameters
         min_fairness = math.inf
@@ -275,7 +401,7 @@ class GraphAnalyzer:
         start_time = time.monotonic()
 
         # see all possibile combinations
-        for nodes in combinations(self.graph.nodes, number):
+        for nodes in combinations(self.graph.nodes, size):
             subgraph = self.graph.subgraph(nodes)
 
             # check if it is connected
@@ -297,3 +423,30 @@ class GraphAnalyzer:
 
         return final_nodes_id
 
+
+    #Multiprocessing it's managed by the operation system
+    def paralelSubgraph(self, fairness_nodes,num_processor,number):
+        if(num_processor == 0):#We cannot have the number of processores equal to zero! Or we will use the other method!
+            pass
+        combination_nodes = list()
+        for elem in combinations(self.graph.nodes, number):
+            combination_nodes.append(elem)
+        num_nodes = (len(combination_nodes))
+        slice_number = round((num_nodes/num_processor)+1)
+        if(slice_number > number):
+            pass
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        jobs = []
+        start_time = time.monotonic()
+        for i in range(num_processor):#Starting to slice the body of the function
+            slice_graph = list(itertools.islice(combination_nodes,(i)*slice_number,(i+1)*slice_number, 1))#Work in progress
+            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(i, return_dict, self.graph, fairness_nodes, slice_graph))
+            jobs.append(p)
+            p.start()
+        for proc in jobs:
+            proc.join()#We need to wait that all the processes are finished :)
+        #Work in progress
+        end_time = time.monotonic()
+        print("-----Time end------")
+        print(end_time-start_time)

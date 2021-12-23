@@ -1,4 +1,5 @@
 import networkx as nx
+from networkx.classes.graph import Graph
 import MyUtility
 import numpy as np
 import pandas as pd
@@ -15,7 +16,6 @@ from GraphAnalyzer import GraphAnalyzer
 # TIME: the time of the rating, measured as seconds since Epoch.
 
 def main():  
-
 
     # --------------------------------- 
     #        FILE MANIPULATION
@@ -34,56 +34,81 @@ def main():
     #             ANALYSES
     # ---------------------------------
 
+    # print two graph to understand what we have in term of edges and degree
+    MyUtility.draw_histogram(graph,0)
+    MyUtility.draw_histogram(graph,1)
+    MyUtility.draw_histogram(graph,2)
+
     analyzer = GraphAnalyzer(graph)
 
     print("---STATISTICAL ANALYSIS---")
     print("Are transaction casual ? {}".format(analyzer.are_transations_casual(0.05)))
 
+    print("----DEGREE ANALYSIS----")
     # calculate degree of all nodes of the graph
-    degree_nodes, max_degree_node = analyzer.graph_in_degree()
-
-    # calculate the closeness centrality for all node in the graph
-    centrality_nodes, max_centrality_node = analyzer.graph_centrality()
-
-    # calculate the betweenness centrality for all node in the graph
-    betweenness_nodes, max_betweennes_node = analyzer.graph_betweenness()
+    in_degree_nodes, max_degree_node = analyzer.graph_in_degree()
+    out_degree_nodes = analyzer.graph_out_degree()
 
     # graph goodnees score
-    print("goodness score of a random node : {}".format(analyzer.node_goodness(905)))
-    goodness_nodes, max_goodness_node, min_goodness_node = analyzer.graph_goodness()
+    print("goodness score of a random node : {}".format(analyzer.node_goodness(905, in_degree_nodes[max_degree_node])))
+    goodness_nodes = analyzer.graph_goodness(max_degree = in_degree_nodes[max_degree_node])
 
-    # graph fariness score
-    fairness_nodes, max_fairness_node, min_fairness_node = analyzer.graph_fairness()
-
-    # first briefly analyses
-    print("  NODE   |  DEGREE  | CLOSENESS | BETWEENNESS | GOODNESS |")
-    print("   {}   | {} | {} |{}|{}".format(max_degree_node, degree_nodes[max_degree_node], centrality_nodes[max_degree_node], betweenness_nodes[max_degree_node], goodness_nodes[max_degree_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_centrality_node, degree_nodes[max_centrality_node], centrality_nodes[max_centrality_node], betweenness_nodes[max_centrality_node], goodness_nodes[max_centrality_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_betweennes_node, degree_nodes[max_betweennes_node], centrality_nodes[max_betweennes_node], betweenness_nodes[max_betweennes_node], goodness_nodes[max_betweennes_node]))
-    print("   {}   | {} | {} |{}|{}".format(max_goodness_node, degree_nodes[max_goodness_node], centrality_nodes[max_goodness_node], betweenness_nodes[max_goodness_node], goodness_nodes[max_goodness_node]))
-    print("   {}   | {} | {} |{}|{}".format(min_goodness_node, degree_nodes[min_goodness_node], centrality_nodes[min_goodness_node], betweenness_nodes[min_goodness_node], goodness_nodes[min_goodness_node]))
+    # graph fairness score
+    fairness_nodes = analyzer.graph_fairness()
 
     # ----------------------------------------------------------
     #                     PRINT SOME GRAPHS
     # ----------------------------------------------------------
 
-    # graph that show degree - closenness centrality and betweenness centrality
-    MyUtility.drawGraph_Centrality(degree_nodes, centrality_nodes, betweenness_nodes, 100)
-
     # graph that show goodness-fairness for 100 nodes
-    MyUtility.drawGraphGoodFair(goodness_nodes, fairness_nodes, 20)
+    MyUtility.draw_graph_good_fair(goodness_nodes, fairness_nodes, 20)
+
+    # graph degree - goodness
+    MyUtility.draw_graph_scatter(list(graph.nodes()), in_degree_nodes, goodness_nodes, 'degree', 'goodness', 'in degree-goodness')
+
+    # graph degree - fairness
+    MyUtility.draw_graph_scatter(list(graph.nodes()), out_degree_nodes, fairness_nodes, 'degree', 'fairness', 'out degree-fairness')
 
     # ----------------------------------------------------------
     #                   PRINT SOME SUBGRAPHS
     # ----------------------------------------------------------
 
     # subgraph for goodness node
-    nodes_id_goodness = analyzer.subgraphGoodness(goodness_nodes, 2) # 1, 1201
-    MyUtility.drawSubgraph(graph, list(nodes_id_goodness), goodness_nodes, 1)
+    print("---SEARCH SUBGRAPHS---")
+#    nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) -> Dovrebbe funzionare da utilizzare al posto 
+#                                                                          di subgraph_goodness e fairness con il type 1 o 2
+#                                                                          QUESTO LO PUO' VERIFICARE SOLO ENRICO
+    nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # subgraph returned: 1, 1201
+    MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 
     # subgraph for fairness node
-    nodes_id_fairness = analyzer.subgraphFairness(fairness_nodes, 2) # 695, 696
-    MyUtility.drawSubgraph(graph, list(nodes_id_fairness), fairness_nodes, 0)
+    nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # subgraph returned: 695, 696
+    MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+
+    # ----------------------------------------------------------
+    #                       CLUSTERING
+    # ----------------------------------------------------------
+
+    print("---CLUSTERING---")
+    # there is another assumptions:
+    #   - we consider only the nodes that has fairness and goodness values 
+    nodes_features = MyUtility.get_node_features(list(graph.nodes()), goodness_nodes, fairness_nodes)
+    analyzer.cluster(nodes_features)
+    print("Are better nodes popular? {}".format(analyzer.better_nodes_are_popular(nodes_features)))
+
+    # ----------------------------------------------------------
+    #                         RANKING
+    # ----------------------------------------------------------
+
+    print("---RANKING---")
+    # last, we want to rank each node using the goodness and fairness values, a node must have both
+    k = 10
+    ranking_nodes = MyUtility.ranking(graph.nodes(), goodness_nodes, fairness_nodes, 0.85)
+    print("Ranking of {} nodes".format(k))
+    for i in range(0, k):
+        print("{}) node: {}, value: {}, goodness: {}, fairness: {}".format(i+1,list(ranking_nodes.keys())[i], 
+            list(ranking_nodes.values())[i], goodness_nodes[list(ranking_nodes.keys())[i]], 
+            fairness_nodes[list(ranking_nodes.keys())[i]]))
 
 if __name__ == "__main__":
     main()

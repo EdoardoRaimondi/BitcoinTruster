@@ -16,7 +16,6 @@ from GraphAnalyzer import GraphAnalyzer
 # TIME: the time of the rating, measured as seconds since Epoch.
 
 def main():  
-
     # --------------------------------- 
     #        FILE MANIPULATION
     # ---------------------------------
@@ -84,6 +83,10 @@ def main():
     # subgraph for fairness node
     nodes_id_fairness = analyzer.subgraph_fairness(fairness_nodes, 2) # subgraph returned: 695, 696
     MyUtility.draw_subgraph(graph, list(nodes_id_fairness), fairness_nodes)
+
+    # we want to know if there are nodes in both subgraphs
+    print("Id nodes that stays in both lists: ")
+    print(list(set(list(nodes_id_goodness)).intersection(list(nodes_id_fairness))))
 
     # ----------------------------------------------------------
     #                       CLUSTERING

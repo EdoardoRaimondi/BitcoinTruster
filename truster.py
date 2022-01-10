@@ -74,9 +74,7 @@ def main():
 
     # subgraph for goodness node
     print("---SEARCH SUBGRAPHS---")
-#    nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) -> Dovrebbe funzionare da utilizzare al posto 
-#                                                                          di subgraph_goodness e fairness con il type 1 o 2
-#                                                                          QUESTO LO PUO' VERIFICARE SOLO ENRICO
+    #nodes_id_goodness = analyzer.search_subgraph(goodness_nodes, 2, 1) paralel way :)
     nodes_id_goodness = analyzer.subgraph_goodness(goodness_nodes, 2) # subgraph returned: 1, 1201
     MyUtility.draw_subgraph(graph, list(nodes_id_goodness), goodness_nodes)
 

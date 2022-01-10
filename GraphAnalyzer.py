@@ -387,8 +387,8 @@ class GraphAnalyzer:
     def subgraph_fairness(self, fairness_nodes, size):
         # calculate the subgraph with lowest fairness
         # param graph (directed networkx graph) 
-        # parm     goodness_nodes   (dict)   : dict key-value as node-fairness_value
-        # parm        size     (int)         : size of the subgraph
+        # param     goodness_nodes   (dict)   : dict key-value as node-fairness_value
+        # param        size     (int)         : size of the subgraph
         # return           (tuple)           : return the tuple with the lowest fairness
 
         if(size > self.graph.size()):
@@ -425,15 +425,25 @@ class GraphAnalyzer:
 
 
     #Multiprocessing it's managed by the operation system
-    def paralelSubgraph(self, fairness_nodes,num_processor,size_sub):
+    #Optimizing the search of subgraph goodness/fairness
+
+
+
+    def paralelSubgraphFairness(self, fairness_nodes,num_processor,size_sub):
+        # calculate the subgraph with lowest fairness in optmized way
+        # (paralelizing all the things)
+        # param graph (directed networkx graph)
+        # param     fairness_nodes   (dict)   : dict key-value as node-fairness_value
+        # param        num_processor     (int)         : number of prcoess we will use
+        # param     size_sub                    : size of subgraph
+        # return           (tuple)           : return the tuple with the lowest fairness
         if(num_processor == 0):#We cannot have the number of processores equal to zero! Or we will use the other method!
             pass
-        n_d = number_of_nodes(self.graph)
-        total_gen = n_d^size_sub
-        chunck_nodes =round(total_gen/num_processor+1)
+        chunck_nodes =round(number_of_nodes(self.graph)/num_processor+1)
+        #print("Chunck nodes: {}".format(chunck_nodes))
         node_dict = dict()
         cnt = 0
-        for node in self.graph.nodes:
+        for node in self.graph.nodes:#Naming all the nodes
             node_dict[cnt]=node
             cnt = cnt + 1
         manager = multiprocessing.Manager()
@@ -441,7 +451,7 @@ class GraphAnalyzer:
         jobs = []
         start_time = time.monotonic()
         for i in range(num_processor):
-            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker,args=(i,num_processor, return_dict, self.graph,fairness_nodes, node_dict, i*chunck_nodes, (i+1)*chunck_nodes))
+            p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker,args=(self.graph, size_sub,   itertools.islice(node_dict, i*chunck_nodes, (i+1)*chunck_nodes), fairness_nodes))
             jobs.append(p)
             p.start()
         for proc in jobs:
@@ -449,5 +459,64 @@ class GraphAnalyzer:
         end_time = time.monotonic()
         print("-----Time end------")
         print(end_time-start_time)
+        max_fairness = -math.inf
         for elem in return_dict:
-            print(elem)#Work in progress
+            # print(elem)
+            if max_fairness < elem:
+                max_fairness = elem
+        return max_fairness
+
+
+
+
+    def paralelSubgraphGoodNess(self, goodness_nodes, num_processor, size_sub):
+        # calculate the subgraph with lowest goodness in optmized way
+        # (paralelizing all the things)
+        # param graph (directed networkx graph)
+        # param     goodness_nodes   (dict)   : dict key-value as node-fairness_value
+        # param        num_processor     (int)         : number of prcoess we will use
+        # param     size_sub                    : size of subgraph
+        # return           (tuple)           : return the tuple with the lowest goodness
+            if (num_processor == 0):  # We cannot have the number of processores equal to zero! Or we will use the other method!
+                pass
+            chunck_nodes = round(number_of_nodes(self.graph) / num_processor + 1)
+            # print("Chunck nodes: {}".format(chunck_nodes))
+            node_dict = dict()
+            cnt = 0
+            for node in self.graph.nodes:#Enumerate all the node for splitting
+                node_dict[cnt] = node
+                cnt = cnt + 1
+            manager = multiprocessing.Manager()
+            return_dict = manager.dict()
+            jobs = []
+            start_time = time.monotonic()
+            for i in range(num_processor):
+                p = multiprocessing.Process(target=ThreadingGraphAnalyzer.worker, args=(
+                self.graph, size_sub, itertools.islice(node_dict, i * chunck_nodes, (i + 1) * chunck_nodes),
+                goodness_nodes, return_dict))
+                jobs.append(p)
+                p.start()
+            for proc in jobs:
+                proc.join()  # We need to wait that all the processes are finished :)
+            end_time = time.monotonic()
+            print("-----Time end------")
+            print(end_time - start_time)
+            max_goodness = -math.inf
+            for elem in return_dict:
+               # print(elem)
+                if max_goodness < elem:
+                    max_goodness = elem
+            return max_goodness
+
+
+
+
+
+
+
+
+
+
+
+
+

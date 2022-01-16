@@ -286,7 +286,7 @@ class GraphAnalyzer:
                 plt.xlabel('goodness')
                 plt.ylabel('fairness')
             else:
-                axs[0].set_title("Cluster with transparences")
+                axs[0].set_title("Cluster with transparencies")
                 axs[0].set(ylabel="fairness", xlabel="goodness")
                 axs[1].set_title("Original cluster")
                 axs[1].set(xlabel="goodness", ylabel="fairness")
